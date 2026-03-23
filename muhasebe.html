@@ -23,6 +23,7 @@
     }
 
     * { box-sizing: border-box; }
+
     body {
       margin: 0;
       font-family: Arial, Helvetica, sans-serif;
@@ -512,6 +513,7 @@
 
     function buildSummaryRows() {
       const selectedOrders = dateOrders();
+
       return PRODUCTS.map(product => {
         const repValues = {};
         PLASIYERS.forEach(rep => repValues[rep] = 0);
@@ -585,7 +587,7 @@
       const rows = buildSummaryRows().filter(row => row.total > 0);
 
       if (!rows.length) {
-        summaryContent.innerHTML = '<div class="empty">Bu tarihte toplamı 0\'dan büyük sipariş görünmüyor.</div>';
+        summaryContent.innerHTML = '<div class="empty">Bu tarihte toplamı 0\\'dan büyük sipariş görünmüyor.</div>';
         return;
       }
 
@@ -650,10 +652,12 @@
     function saveStock() {
       const inputs = document.querySelectorAll('[data-stock-id]');
       const next = {};
+
       inputs.forEach(input => {
         const val = Number(input.value || 0);
         if (val > 0) next[input.dataset.stockId] = val;
       });
+
       depoStock = next;
       localStorage.setItem('siparis_depo_stock', JSON.stringify(depoStock));
       stockMessage.innerHTML = '<div class="message">Depo stoğu kaydedildi.</div>';
@@ -663,10 +667,12 @@
     function saveOld() {
       const inputs = document.querySelectorAll('[data-old-id]');
       const next = {};
+
       inputs.forEach(input => {
         const val = Number(input.value || 0);
         if (val > 0) next[input.dataset.oldId] = val;
       });
+
       gazipasaOld = next;
       localStorage.setItem('siparis_gazipasa_old', JSON.stringify(gazipasaOld));
       oldMessage.innerHTML = '<div class="message">Gazipaşa Old kaydedildi.</div>';
@@ -807,7 +813,6 @@
         });
       });
 
-      const lastDataRow = sheet.rowCount + 1;
       const totals = {
         metin: rows.reduce((sum, row) => sum + Number(row.repValues['Metin İlhan'] || 0), 0),
         cetin: rows.reduce((sum, row) => sum + Number(row.repValues['Çetin Orhan Manavgat'] || 0), 0),
@@ -840,7 +845,10 @@
           bottom: { style: 'thin', color: { argb: 'CBD5E1' } },
           right: { style: 'thin', color: { argb: 'CBD5E1' } }
         };
-        cell.alignment = { vertical: 'middle', horizontal: colNumber >= 3 ? 'right' : 'left' };
+        cell.alignment = {
+          vertical: 'middle',
+          horizontal: colNumber >= 3 ? 'right' : 'left'
+        };
         cell.fill = {
           type: 'pattern',
           pattern: 'solid',
@@ -848,14 +856,18 @@
         };
       });
 
-      sheet.autoFilter = {
-        from: 'A4',
-        to: 'J4'
-      };
+      sheet.autoFilter = { from: 'A4', to: 'J4' };
 
       const buffer = await workbook.xlsx.writeBuffer();
-      saveAs(new Blob([buffer], {
-        type: 'application/vnd.openxmlformats-officedocument(name) {
+      saveAs(
+        new Blob([buffer], {
+          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        }),
+        `muhasebe-ozeti-${reportDate.value}.xlsx`
+      );
+    }
+
+    function switchTab(name) {
       tabButtons.forEach(btn => btn.classList.toggle('active', btn.dataset.tab === name));
       summaryPanel.classList.toggle('active', name === 'summary');
       stockPanel.classList.toggle('active', name === 'stock');
