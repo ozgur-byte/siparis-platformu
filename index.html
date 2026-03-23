@@ -1,0 +1,524 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sipariş Toplama Platformu</title>
+  <style>
+    :root {
+      --bg: #f4f6f8;
+      --card: #ffffff;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --line: #dbe3ea;
+      --primary: #0f766e;
+      --primary-dark: #115e59;
+      --soft: #eef6f5;
+      --danger: #b91c1c;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 12px;
+    }
+
+    .header, .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+    }
+
+    .header {
+      padding: 20px;
+      margin-bottom: 14px;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: 30px;
+    }
+
+    .sub {
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 1.05fr 1.25fr;
+      gap: 14px;
+    }
+
+    .card {
+      padding: 18px;
+    }
+
+    .title {
+      font-size: 22px;
+      font-weight: 700;
+      margin-bottom: 16px;
+    }
+
+    .field {
+      margin-bottom: 14px;
+    }
+
+    label {
+      display: block;
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    select, input[type="date"], input[type="number"] {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: #fff;
+      padding: 14px 16px;
+      font-size: 18px;
+      min-height: 56px;
+      outline: none;
+    }
+
+    input[type="number"] {
+      text-align: right;
+      font-weight: 700;
+      font-size: 24px;
+    }
+
+    .products {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      max-height: 62vh;
+      overflow: auto;
+      padding-right: 4px;
+    }
+
+    .product-row {
+      display: grid;
+      grid-template-columns: 1fr 120px;
+      gap: 10px;
+      align-items: center;
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      background: #fff;
+      padding: 14px;
+    }
+
+    .product-name {
+      font-size: 18px;
+      font-weight: 700;
+      line-height: 1.25;
+      margin-bottom: 5px;
+    }
+
+    .product-code {
+      font-size: 14px;
+      color: var(--muted);
+    }
+
+    .btn {
+      border: 0;
+      background: var(--primary);
+      color: #fff;
+      width: 100%;
+      min-height: 58px;
+      border-radius: 18px;
+      font-size: 20px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .btn:hover { background: var(--primary-dark); }
+
+    .btn.secondary {
+      background: #1f2937;
+      min-height: 48px;
+      font-size: 16px;
+    }
+
+    .message {
+      margin-top: 14px;
+      background: var(--soft);
+      border-radius: 18px;
+      padding: 14px;
+      font-size: 15px;
+      line-height: 1.5;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .stat {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      padding: 18px;
+    }
+
+    .stat-label {
+      font-size: 14px;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    .stat-value {
+      font-size: 34px;
+      font-weight: 800;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+      background: #fff;
+      border-radius: 18px;
+      overflow: hidden;
+    }
+
+    thead {
+      background: #eef2f7;
+    }
+
+    th, td {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+    }
+
+    td:last-child, th:last-child {
+      text-align: right;
+    }
+
+    .toolbar {
+      margin-bottom: 14px;
+    }
+
+    .warning {
+      color: var(--danger);
+      font-weight: 700;
+      font-size: 14px;
+      margin-top: 8px;
+    }
+
+    @media (max-width: 900px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+      .stats {
+        grid-template-columns: 1fr;
+      }
+      h1 {
+        font-size: 26px;
+      }
+    }
+
+    @media (max-width: 560px) {
+      .container {
+        padding: 10px;
+      }
+      .card, .header {
+        border-radius: 18px;
+      }
+      .product-row {
+        grid-template-columns: 1fr 110px;
+        padding: 12px;
+      }
+      .product-name {
+        font-size: 16px;
+      }
+      input[type="number"] {
+        font-size: 22px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>Sipariş Toplama Platformu</h1>
+      <div class="sub">Plasiyer siparişi hızlı girer, muhasebe kümüle toplamı görür, Excel olarak indirir.</div>
+    </div>
+
+    <div class="layout">
+      <div class="card">
+        <div class="title">Plasiyer Sipariş Girişi</div>
+
+        <div class="field">
+          <label for="repSelect">Plasiyer</label>
+          <select id="repSelect"></select>
+        </div>
+
+        <div class="field">
+          <label for="dateInput">Tarih</label>
+          <input id="dateInput" type="date" />
+        </div>
+
+        <div class="products" id="products"></div>
+
+        <div style="margin-top: 14px;">
+          <button class="btn" id="submitBtn">Gönder</button>
+        </div>
+
+        <div class="message" id="messageBox" style="display:none;"></div>
+        <div class="warning">Not: Aynı plasiyer aynı tarihte ikinci kez sipariş girerse sistem uyarı verir ama kaydı yine ekler.</div>
+      </div>
+
+      <div>
+        <div class="stats">
+          <div class="stat">
+            <div class="stat-label">Toplam Sipariş</div>
+            <div class="stat-value" id="totalBoxes">0</div>
+            <div class="sub">koli</div>
+          </div>
+          <div class="stat">
+            <div class="stat-label">Bugünkü Giriş</div>
+            <div class="stat-value" id="todayEntries">0</div>
+            <div class="sub">sipariş kaydı</div>
+          </div>
+          <div class="stat">
+            <div class="stat-label">Excel Çıktısı</div>
+            <div style="margin-top: 12px;">
+              <button class="btn secondary" id="excelBtn">Excel İndir</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="title">Muhasebe Ekranı</div>
+          <div class="toolbar sub">Ürün bazlı kümüle toplam görünür.</div>
+          <div style="overflow:auto;">
+            <table>
+              <thead>
+                <tr>
+                  <th>Kod</th>
+                  <th>Ürün</th>
+                  <th>Toplam Koli</th>
+                </tr>
+              </thead>
+              <tbody id="summaryTable"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script>
+    const PRODUCTS = [
+      { id: '19179-1', code: '19179', name: 'DÖKME AÇIK' },
+      { id: '19173-1', code: '19173', name: 'POŞETLİ' },
+      { id: '33787-1', code: '33787', name: 'MAKSİ' },
+      { id: '25338-1', code: '25338', name: 'POŞETLİ 14' },
+      { id: '19354-1', code: '19354', name: 'DÖKME BAGET' },
+      { id: '19352-1', code: '19352', name: 'DÖKME KALÇALI BUT' },
+      { id: '19355-1', code: '19355', name: 'DÖKME BUT İNCİK' },
+      { id: '4924-1', code: '4924', name: 'DÖKME KEMİKSİZ BUT' },
+      { id: '33836-1', code: '33836', name: 'DÖKME DERİLİ LOKUMSUZ BONFİLE' },
+      { id: '19362-1', code: '19362', name: 'DÖKME BONFİLE' },
+      { id: '19360-1', code: '19360', name: 'DÖKME KOVAN GÖĞÜS' },
+      { id: '19361-1', code: '19361', name: 'DÖKME MUZ GÖĞÜS' },
+      { id: '19367-1', code: '19367', name: 'DÖKME ÇORBALIK' },
+      { id: '19351-1', code: '19351', name: 'DÖKME IZGARALIK KANAT' },
+      { id: '19349-1', code: '19349', name: 'DÖKME SPESİYAL KANAT' },
+      { id: '19348-1', code: '19348', name: 'DÖKME UCLU KANAT' },
+      { id: '19101-1', code: '19101', name: 'TABAKLI KALÇALI BUT' },
+      { id: '19103-1', code: '19103', name: 'TABAKLI BAGET' },
+      { id: '19130-1', code: '19130', name: 'TABAKLI BUT İNCİK' },
+      { id: '19105-1', code: '19105', name: 'TABAKLI IZGARA TAVA' },
+      { id: '36137-1', code: '36137', name: 'TABAKLI SPS KANAT' },
+      { id: '33798-1', code: '33798', name: 'TABAKLI JUMBO KANAT' },
+      { id: '36138-1', code: '36138', name: 'TABAKLI IZGARA KANAT' },
+      { id: '19110-1', code: '19110', name: 'TABAKLI BONFİLE' },
+      { id: '25339-1', code: '25339', name: 'TABAKLI CİĞER' },
+      { id: '19320-1', code: '19320', name: 'TABAKLI TAŞLIK' },
+      { id: '31343-1', code: '31343', name: 'TABAKLI YÜREK' },
+      { id: '2812318-1', code: '2812318', name: 'AL-TAV UÇLU KANAT' },
+      { id: '2812302-1', code: '2812302', name: 'AL-TAV BONFİLE' },
+      { id: '2812313-1', code: '2812313', name: 'AL-TAV KEMİKSİZ BUT' },
+      { id: '2812305-1', code: '2812305', name: 'AL-TAV ÇORBALIK' },
+      { id: '2812310-1', code: '2812310', name: 'AL-TAV KALÇALI BUT' },
+      { id: '2812303-1', code: '2812303', name: 'AL-TAV BUT İNCİK' },
+      { id: '2812306-1', code: '2812306', name: 'AL-TAV DÖNERLİK BONFİLE' },
+      { id: '19027-1', code: '19027', name: 'ŞENPİLİÇ ÇATAL BUT' },
+    ];
+
+    const PLASIYERS = ['Metin İlhan', 'Çetin Orhan Manavgat', 'Orhan Sezen', 'Merkez', 'Gazipaşa'];
+
+    const repSelect = document.getElementById('repSelect');
+    const dateInput = document.getElementById('dateInput');
+    const productsWrap = document.getElementById('products');
+    const submitBtn = document.getElementById('submitBtn');
+    const excelBtn = document.getElementById('excelBtn');
+    const messageBox = document.getElementById('messageBox');
+    const totalBoxesEl = document.getElementById('totalBoxes');
+    const todayEntriesEl = document.getElementById('todayEntries');
+    const summaryTable = document.getElementById('summaryTable');
+
+    let orders = JSON.parse(localStorage.getItem('siparis_orders') || '[]');
+
+    function todayDefault() {
+      const now = new Date();
+      const y = now.getFullYear();
+      const m = String(now.getMonth() + 1).padStart(2, '0');
+      const d = String(now.getDate()).padStart(2, '0');
+      return `${y}-${m}-${d}`;
+    }
+
+    function showMessage(text) {
+      messageBox.style.display = 'block';
+      messageBox.textContent = text;
+    }
+
+    function renderPlasiyers() {
+      repSelect.innerHTML = PLASIYERS.map(name => `<option value="${name}">${name}</option>`).join('');
+    }
+
+    function renderProducts() {
+      productsWrap.innerHTML = PRODUCTS.map(product => `
+        <div class="product-row">
+          <div>
+            <div class="product-name">${product.name}</div>
+            <div class="product-code">Kod: ${product.code}</div>
+          </div>
+          <input type="number" min="0" inputmode="numeric" placeholder="Koli" data-id="${product.id}" />
+        </div>
+      `).join('');
+    }
+
+    function totalsByProduct() {
+      const totals = {};
+      PRODUCTS.forEach(p => totals[p.id] = 0);
+      let grandTotal = 0;
+
+      orders.forEach(order => {
+        Object.entries(order.items).forEach(([id, qty]) => {
+          const val = Number(qty) || 0;
+          totals[id] = (totals[id] || 0) + val;
+          grandTotal += val;
+        });
+      });
+
+      return { totals, grandTotal };
+    }
+
+    function renderSummary() {
+      const { totals, grandTotal } = totalsByProduct();
+      totalBoxesEl.textContent = grandTotal;
+      const todayEntries = orders.filter(o => o.date === dateInput.value).length;
+      todayEntriesEl.textContent = todayEntries;
+
+      summaryTable.innerHTML = PRODUCTS.map(product => `
+        <tr>
+          <td>${product.code}</td>
+          <td>${product.name}</td>
+          <td>${totals[product.id] || 0}</td>
+        </tr>
+      `).join('');
+    }
+
+    function collectOrder() {
+      const inputs = productsWrap.querySelectorAll('input[data-id]');
+      const cleanItems = {};
+      let total = 0;
+
+      inputs.forEach(input => {
+        const val = Number(input.value || 0);
+        if (val > 0) {
+          cleanItems[input.dataset.id] = val;
+          total += val;
+        }
+      });
+
+      return { cleanItems, total };
+    }
+
+    function clearInputs() {
+      productsWrap.querySelectorAll('input[data-id]').forEach(input => input.value = '');
+    }
+
+    function saveOrders() {
+      localStorage.setItem('siparis_orders', JSON.stringify(orders));
+    }
+
+    submitBtn.addEventListener('click', () => {
+      const rep = repSelect.value;
+      const date = dateInput.value;
+      const { cleanItems, total } = collectOrder();
+
+      if (!Object.keys(cleanItems).length) {
+        showMessage('En az bir ürün için koli miktarı girmen gerekiyor.');
+        return;
+      }
+
+      const confirmed = window.confirm(`Toplam sipariş koli miktarı: ${total} koli. Onaylıyor musun?`);
+      if (!confirmed) {
+        showMessage('Sipariş gönderimi iptal edildi.');
+        return;
+      }
+
+      const hasPreviousOrderSameDay = orders.some(order => order.rep === rep && order.date === date);
+      orders.push({ rep, date, items: cleanItems });
+      saveOrders();
+      clearInputs();
+      renderSummary();
+
+      if (hasPreviousOrderSameDay) {
+        showMessage(`${rep} için bu tarih adına daha önce sipariş girilmişti. Yeni kayıt eklendi.`);
+      } else {
+        showMessage(`${rep} siparişi kaydedildi. Muhasebe toplamına eklendi.`);
+      }
+    });
+
+    excelBtn.addEventListener('click', () => {
+      const { totals } = totalsByProduct();
+
+      const productRows = PRODUCTS.map(p => ({
+        Kod: p.code,
+        Ürün: p.name,
+        'Toplam Koli': totals[p.id] || 0,
+      }));
+
+      const orderRows = orders.flatMap(order =>
+        PRODUCTS.filter(p => Number(order.items[p.id]) > 0).map(p => ({
+          Tarih: order.date,
+          Plasiyer: order.rep,
+          Kod: p.code,
+          Ürün: p.name,
+          Koli: Number(order.items[p.id]) || 0,
+        }))
+      );
+
+      const workbook = XLSX.utils.book_new();
+      const summarySheet = XLSX.utils.json_to_sheet(productRows);
+      const detailSheet = XLSX.utils.json_to_sheet(orderRows.length ? orderRows : [{ Bilgi: 'Henüz sipariş yok' }]);
+      XLSX.utils.book_append_sheet(workbook, summarySheet, 'Kumule Toplam');
+      XLSX.utils.book_append_sheet(workbook, detailSheet, 'Siparis Detay');
+      XLSX.writeFile(workbook, `siparis-raporu-${dateInput.value}.xlsx`);
+    });
+
+    dateInput.value = todayDefault();
+    renderPlasiyers();
+    renderProducts();
+    renderSummary();
+  </script>
+</body>
+</html>
