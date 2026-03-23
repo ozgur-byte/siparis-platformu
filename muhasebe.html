@@ -1,933 +1,1232 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="tr">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Muhasebe Ekranı - Özgür</title>
+  <title>Muhasebe Paneli</title>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
   <style>
-    :root {
-      --bg: #f4f6f8;
-      --card: #ffffff;
-      --text: #1f2937;
-      --muted: #6b7280;
-      --line: #dbe3ea;
-      --soft: #eef6f5;
-      --teal: #0f766e;
-      --teal-dark: #115e59;
-      --blue: #1d4ed8;
-      --blue-dark: #1e40af;
-      --success-bg: #ecfdf5;
-      --success-text: #166534;
-      --warning-bg: #fff7ed;
-      --warning-text: #92400e;
+    :root{
+      --bg:#f4f7fb;
+      --card:#ffffff;
+      --line:#d9e2ef;
+      --text:#1f2937;
+      --muted:#6b7280;
+      --primary:#0f766e;
+      --primary-2:#115e59;
+      --danger:#b91c1c;
+      --danger-bg:#fef2f2;
+      --success:#166534;
+      --success-bg:#f0fdf4;
+      --warn:#92400e;
+      --warn-bg:#fffbeb;
+      --shadow:0 8px 24px rgba(15,23,42,.08);
+      --radius:18px;
     }
 
-    * { box-sizing: border-box; }
-
-    body {
-      margin: 0;
-      font-family: Arial, Helvetica, sans-serif;
-      background: var(--bg);
-      color: var(--text);
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      background:var(--bg);
+      color:var(--text);
+      font-family: Inter, Arial, Helvetica, sans-serif;
     }
 
-    .container {
-      max-width: 1440px;
+    .container{
+      max-width: 1600px;
       margin: 0 auto;
-      padding: 12px;
+      padding: 24px;
     }
 
-    .header, .card {
-      background: var(--card);
-      border: 1px solid var(--line);
-      border-radius: 24px;
-      box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+    .header{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap:16px;
+      margin-bottom:20px;
+      flex-wrap:wrap;
     }
 
-    .header {
-      padding: 18px;
-      margin-bottom: 14px;
+    .title-wrap h1{
+      margin:0;
+      font-size:30px;
+      font-weight:800;
+      letter-spacing:-.3px;
     }
 
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      flex-wrap: wrap;
+    .title-wrap p{
+      margin:8px 0 0;
+      color:var(--muted);
+      font-size:14px;
     }
 
-    .brand img {
-      height: 44px;
-      width: auto;
-      object-fit: contain;
+    .toolbar{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
     }
 
-    h1 {
-      margin: 0;
-      font-size: 28px;
-      line-height: 1.2;
+    button, .file-label{
+      border:none;
+      border-radius:12px;
+      padding:12px 16px;
+      font-size:14px;
+      font-weight:700;
+      cursor:pointer;
+      transition:.18s ease;
     }
 
-    .subline {
-      margin-top: 8px;
-      color: var(--muted);
-      font-size: 14px;
+    button:hover, .file-label:hover{
+      transform:translateY(-1px);
+      opacity:.95;
     }
 
-    .card {
-      padding: 18px;
-      margin-bottom: 14px;
+    .btn-primary{
+      background:var(--primary);
+      color:#fff;
     }
 
-    .stats {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 12px;
-      margin-bottom: 14px;
+    .btn-secondary{
+      background:#e6eef8;
+      color:#0f172a;
     }
 
-    .stat {
-      background: var(--card);
-      border: 1px solid var(--line);
-      border-radius: 22px;
-      padding: 16px;
+    .btn-danger{
+      background:var(--danger-bg);
+      color:var(--danger);
+      border:1px solid #fecaca;
     }
 
-    .stat-label {
-      font-size: 13px;
-      color: var(--muted);
-      margin-bottom: 8px;
+    .btn-success{
+      background:var(--success-bg);
+      color:var(--success);
+      border:1px solid #bbf7d0;
     }
 
-    .stat-value {
-      font-size: 30px;
-      font-weight: 800;
+    .file-label input{
+      display:none;
     }
 
-    .status-box {
-      display: inline-block;
-      margin-top: 10px;
-      padding: 10px 14px;
-      border-radius: 999px;
-      font-weight: 700;
-      font-size: 14px;
-      border: 1px solid transparent;
+    .grid{
+      display:grid;
+      gap:16px;
     }
 
-    .status-ready {
-      background: var(--success-bg);
-      color: var(--success-text);
-      border-color: #bbf7d0;
+    .grid-4{
+      grid-template-columns: repeat(4, minmax(0, 1fr));
     }
 
-    .status-waiting {
-      background: var(--warning-bg);
-      color: var(--warning-text);
-      border-color: #fed7aa;
+    .card{
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      padding:18px;
     }
 
-    .rep-status-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-      margin-bottom: 14px;
+    .stat{
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+      min-height:110px;
+      justify-content:center;
     }
 
-    .rep-box {
-      background: var(--card);
-      border: 1px solid var(--line);
-      border-radius: 22px;
-      padding: 16px;
+    .stat .label{
+      color:var(--muted);
+      font-size:13px;
+      font-weight:700;
+      text-transform:uppercase;
+      letter-spacing:.4px;
     }
 
-    .rep-box-title {
-      font-size: 16px;
-      font-weight: 700;
-      margin-bottom: 10px;
+    .stat .value{
+      font-size:32px;
+      font-weight:800;
+      letter-spacing:-.8px;
     }
 
-    .rep-tags {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
+    .row{
+      display:grid;
+      grid-template-columns: 1.1fr 1fr;
+      gap:16px;
+      margin-top:16px;
     }
 
-    .rep-tag {
-      display: inline-flex;
-      align-items: center;
-      padding: 8px 12px;
-      border-radius: 999px;
-      font-size: 13px;
-      font-weight: 700;
-      border: 1px solid transparent;
+    .section-title{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:10px;
+      margin-bottom:14px;
+      flex-wrap:wrap;
     }
 
-    .rep-tag.entered {
-      background: var(--success-bg);
-      color: var(--success-text);
-      border-color: #bbf7d0;
+    .section-title h2{
+      margin:0;
+      font-size:18px;
+      font-weight:800;
     }
 
-    .rep-tag.missing {
-      background: var(--warning-bg);
-      color: var(--warning-text);
-      border-color: #fed7aa;
+    .section-title span{
+      color:var(--muted);
+      font-size:13px;
     }
 
-    .topbar {
-      display: grid;
-      grid-template-columns: 240px 1fr auto;
-      gap: 12px;
-      align-items: end;
-      margin-bottom: 14px;
+    .chips{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
     }
 
-    label {
-      display: block;
-      font-size: 14px;
-      font-weight: 700;
-      margin-bottom: 8px;
+    .chip{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      border-radius:999px;
+      padding:10px 14px;
+      font-size:14px;
+      font-weight:700;
     }
 
-    input[type="date"], input[type="number"] {
-      width: 100%;
-      border: 2px solid #cfd8e3;
-      border-radius: 16px;
-      background: #f8fafc;
-      padding: 12px 14px;
-      font-size: 16px;
-      min-height: 50px;
-      outline: none;
+    .chip.ok{
+      background:var(--success-bg);
+      color:var(--success);
+      border:1px solid #bbf7d0;
     }
 
-    input[type="number"] {
-      text-align: right;
-      font-weight: 700;
+    .chip.no{
+      background:var(--danger-bg);
+      color:var(--danger);
+      border:1px solid #fecaca;
     }
 
-    .btn {
-      min-height: 50px;
-      border-radius: 16px;
-      padding: 12px 16px;
-      font-size: 15px;
-      font-weight: 700;
-      cursor: pointer;
-      color: #fff;
-      border: 3px solid transparent;
-      transition: 0.15s ease;
+    .muted-box{
+      background:#f8fafc;
+      border:1px dashed #cbd5e1;
+      color:#475569;
+      border-radius:14px;
+      padding:14px;
+      font-size:13px;
+      line-height:1.6;
     }
 
-    .btn:hover { filter: brightness(0.96); }
-    .btn:active { transform: translateY(1px); }
-
-    .btn-export {
-      background: var(--teal);
-      border-color: var(--teal-dark);
+    .filters{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-bottom:14px;
     }
 
-    .btn-save {
-      background: var(--blue);
-      border-color: var(--blue-dark);
+    .filters input, .filters select, textarea{
+      width:100%;
+      border:1px solid var(--line);
+      background:#fff;
+      border-radius:12px;
+      padding:12px 14px;
+      font-size:14px;
+      outline:none;
     }
 
-    .tabbar {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      margin-bottom: 14px;
+    .filters .input{
+      flex:1 1 280px;
     }
 
-    .tab-btn {
-      min-height: 46px;
-      padding: 10px 16px;
-      border-radius: 14px;
-      border: 2px solid #d5deea;
-      background: #fff;
-      color: var(--text);
-      font-size: 14px;
-      font-weight: 700;
-      cursor: pointer;
+    .filters .select{
+      width:220px;
     }
 
-    .tab-btn.active {
-      background: #eef6f5;
-      color: var(--teal-dark);
-      border-color: #b6ddd8;
+    .table-wrap{
+      overflow:auto;
+      border:1px solid var(--line);
+      border-radius:16px;
+      background:#fff;
     }
 
-    .panel { display: none; }
-    .panel.active { display: block; }
-
-    .table-wrap {
-      overflow: auto;
-      border: 1px solid var(--line);
-      border-radius: 18px;
-      background: #fff;
+    table{
+      width:100%;
+      border-collapse:separate;
+      border-spacing:0;
+      min-width:920px;
     }
 
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      min-width: 1180px;
+    thead th{
+      position:sticky;
+      top:0;
+      z-index:2;
+      background:linear-gradient(180deg, #0f766e 0%, #115e59 100%);
+      color:#fff;
+      font-size:13px;
+      font-weight:800;
+      padding:14px 12px;
+      border-right:1px solid rgba(255,255,255,.16);
+      text-align:center;
+      white-space:nowrap;
     }
 
-    thead {
-      background: #eef2f7;
-      position: sticky;
-      top: 0;
-      z-index: 1;
+    thead th:first-child{
+      position:sticky;
+      left:0;
+      z-index:4;
+      text-align:left;
+      min-width:260px;
     }
 
-    th, td {
-      padding: 12px 12px;
-      border-bottom: 1px solid var(--line);
-      font-size: 14px;
-      text-align: left;
-      vertical-align: middle;
-      white-space: nowrap;
+    tbody td{
+      padding:12px 10px;
+      border-bottom:1px solid #e5edf5;
+      border-right:1px solid #eef2f7;
+      text-align:center;
+      font-size:14px;
+      background:#fff;
     }
 
-    th.num, td.num {
-      text-align: right;
+    tbody tr:nth-child(even) td{
+      background:#fbfdff;
     }
 
-    td.total-col, th.total-col {
-      background: #f8fafc;
-      font-weight: 800;
+    tbody td:first-child{
+      position:sticky;
+      left:0;
+      z-index:1;
+      text-align:left;
+      font-weight:700;
+      color:#0f172a;
+      min-width:260px;
+      background:inherit;
     }
 
-    .panel-title {
-      font-size: 20px;
-      font-weight: 700;
-      margin-bottom: 10px;
+    .qty{
+      display:inline-flex;
+      min-width:38px;
+      justify-content:center;
+      align-items:center;
+      padding:6px 10px;
+      border-radius:999px;
+      background:#e6f7f5;
+      color:#0f766e;
+      font-weight:800;
+      border:1px solid #c6f1eb;
     }
 
-    .message {
-      margin-top: 12px;
-      background: #eef6f5;
-      border: 1px solid #d7ece9;
-      border-radius: 16px;
-      padding: 12px 14px;
-      font-size: 14px;
-      line-height: 1.5;
+    .zero{
+      color:#cbd5e1;
+      font-weight:700;
     }
 
-    .empty {
-      padding: 18px;
-      border: 1px dashed #cfd8e3;
-      border-radius: 16px;
-      color: var(--muted);
-      background: #fff;
-      font-size: 14px;
+    .tfoot-cell{
+      background:#ecfeff !important;
+      font-weight:800;
+      color:#0f172a;
     }
 
-    .savebar {
-      display: flex;
-      justify-content: flex-end;
-      margin-top: 12px;
+    .mini-table{
+      width:100%;
+      min-width: unset;
     }
 
-    @media (max-width: 900px) {
-      .stats {
-        grid-template-columns: 1fr 1fr;
-      }
-
-      .rep-status-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .topbar {
-        grid-template-columns: 1fr;
-      }
+    .mini-table th{
+      position:static;
+      background:#0f172a;
+      color:#fff;
     }
 
-    @media (max-width: 560px) {
-      .container { padding: 10px; }
-      .header, .card, .stat, .rep-box { border-radius: 18px; }
-      h1 { font-size: 24px; }
-      .brand img { height: 38px; }
-      .stats { grid-template-columns: 1fr; }
+    .mini-table td:first-child, .mini-table th:first-child{
+      position:static;
+      min-width:unset;
+    }
+
+    .two-col{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:16px;
+      margin-top:16px;
+    }
+
+    .note{
+      font-size:12px;
+      color:var(--muted);
+      margin-top:10px;
+      line-height:1.5;
+    }
+
+    .textarea-wrap{
+      margin-top:16px;
+    }
+
+    textarea{
+      min-height:140px;
+      resize:vertical;
+    }
+
+    .small-actions{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-top:10px;
+    }
+
+    .badge{
+      display:inline-block;
+      padding:6px 10px;
+      border-radius:999px;
+      background:#eef2ff;
+      color:#3730a3;
+      font-size:12px;
+      font-weight:800;
+      border:1px solid #c7d2fe;
+    }
+
+    @media (max-width: 1100px){
+      .grid-4{grid-template-columns: repeat(2, minmax(0,1fr));}
+      .row, .two-col{grid-template-columns:1fr;}
+    }
+
+    @media (max-width: 640px){
+      .grid-4{grid-template-columns:1fr;}
+      .container{padding:14px;}
+      .title-wrap h1{font-size:24px;}
     }
   </style>
 </head>
 <body>
   <div class="container">
     <div class="header">
-      <div class="brand">
-        <img src="logo.png" alt="AL-TAV Logo" onerror="this.style.display='none'" />
-        <h1>Muhasebe Ekranı - Özgür</h1>
+      <div class="title-wrap">
+        <h1>Muhasebe Paneli</h1>
+        <p>Sipariş kayıtlarını cihazdaki depodan okuyup plasiyer ve ürün bazında özetler.</p>
       </div>
-      <div class="subline">Sipariş özeti, depo stoğu ve Gazipaşa Old girişleri tek yerde.</div>
+
+      <div class="toolbar">
+        <button class="btn-primary" onclick="loadData()">Verileri Yenile</button>
+        <button class="btn-success" onclick="exportExcel()">Excel'e İndir</button>
+        <button class="btn-secondary" onclick="downloadBackup()">Yedek JSON İndir</button>
+        <label class="file-label btn-secondary">
+          JSON İçe Aktar
+          <input type="file" id="jsonFileInput" accept=".json,application/json" />
+        </label>
+        <button class="btn-danger" onclick="clearImportedBackup()">İçe Aktarılan Yedeği Sil</button>
+      </div>
     </div>
 
-    <div class="stats" id="statsRow"></div>
-    <div class="rep-status-grid" id="repStatusGrid"></div>
+    <div class="grid grid-4">
+      <div class="card stat">
+        <div class="label">Toplam Kayıt</div>
+        <div class="value" id="statTotalOrders">0</div>
+      </div>
+      <div class="card stat">
+        <div class="label">Toplam Plasiyer</div>
+        <div class="value" id="statTotalSales">0</div>
+      </div>
+      <div class="card stat">
+        <div class="label">Giriş Yapan</div>
+        <div class="value" id="statActiveSales">0</div>
+      </div>
+      <div class="card stat">
+        <div class="label">Toplam Ürün Kalemi</div>
+        <div class="value" id="statTotalItems">0</div>
+      </div>
+    </div>
 
-    <div class="card">
-      <div class="topbar">
-        <div>
-          <label for="reportDate">Rapor Tarihi</label>
-          <input id="reportDate" type="date" />
+    <div class="row">
+      <div class="card">
+        <div class="section-title">
+          <h2>Plasiyer Durumu</h2>
+          <span id="statusInfo">Veri bekleniyor</span>
         </div>
-        <div id="statusArea"></div>
-        <div>
-          <button class="btn btn-export" id="exportBtn">Excel'e İndir</button>
+        <div class="two-col">
+          <div>
+            <div class="badge">Giriş Yapanlar</div>
+            <div class="chips" id="activeSalesList" style="margin-top:10px;"></div>
+          </div>
+          <div>
+            <div class="badge">Giriş Yapmayanlar</div>
+            <div class="chips" id="inactiveSalesList" style="margin-top:10px;"></div>
+          </div>
+        </div>
+        <div class="note">
+          Not: Giriş yapan/yapmayan listesi, veride görülen tüm plasiyerlere göre hesaplanır.
+          Elinde sabit bir plasiyer listesi varsa aşağıdaki <b>SAHADAKI_PLASIYERLER</b> dizisine ekleyebilirsin.
         </div>
       </div>
 
-      <div class="tabbar">
-        <button class="tab-btn active" data-tab="summary">Sipariş Özeti</button>
-        <button class="tab-btn" data-tab="stock">Depo Stoğu</button>
-        <button class="tab-btn" data-tab="old">Gazipaşa Old</button>
+      <div class="card">
+        <div class="section-title">
+          <h2>Veri Kaynağı</h2>
+          <span id="sourceInfo">Tarama yapılmadı</span>
+        </div>
+        <div class="muted-box" id="debugBox">
+          Henüz veri okunmadı.
+        </div>
+
+        <div class="textarea-wrap">
+          <div class="badge">Elle JSON Yapıştır</div>
+          <textarea id="manualJson" placeholder='Buraya JSON yapıştırıp "Elle Veriyi Kullan" diyebilirsin. İnsan bazen sisteme değil, sisteme rağmen çalışır.'></textarea>
+          <div class="small-actions">
+            <button class="btn-secondary" onclick="useManualJson()">Elle Veriyi Kullan</button>
+            <button class="btn-secondary" onclick="document.getElementById('manualJson').value=''">Temizle</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:16px;">
+      <div class="section-title">
+        <h2>Ürün Bazlı Sipariş Matrisi</h2>
+        <span>Satırlar ürün, sütunlar plasiyer</span>
       </div>
 
-      <div id="summaryPanel" class="panel active">
-        <div class="panel-title">Sipariş Özeti</div>
-        <div id="summaryContent"></div>
+      <div class="filters">
+        <div class="input">
+          <input type="text" id="searchInput" placeholder="Ürün ara..." />
+        </div>
+        <div class="select">
+          <select id="sortSelect">
+            <option value="name">Ürüne göre sırala</option>
+            <option value="total-desc">Toplama göre büyükten küçüğe</option>
+            <option value="total-asc">Toplama göre küçükten büyüğe</option>
+          </select>
+        </div>
       </div>
 
-      <div id="stockPanel" class="panel">
-        <div class="panel-title">Depo Stoğu Girişi</div>
+      <div class="table-wrap">
+        <table id="matrixTable">
+          <thead id="matrixHead"></thead>
+          <tbody id="matrixBody"></tbody>
+          <tfoot id="matrixFoot"></tfoot>
+        </table>
+      </div>
+    </div>
+
+    <div class="two-col">
+      <div class="card">
+        <div class="section-title">
+          <h2>Plasiyer Toplamları</h2>
+          <span>Toplam miktar</span>
+        </div>
         <div class="table-wrap">
-          <table>
+          <table class="mini-table">
             <thead>
               <tr>
-                <th>Kod</th>
-                <th>Ürün</th>
-                <th class="num">Depo Stoğu</th>
+                <th>Plasiyer</th>
+                <th>Toplam</th>
               </tr>
             </thead>
-            <tbody id="stockTableBody"></tbody>
+            <tbody id="salesSummaryBody"></tbody>
           </table>
         </div>
-        <div class="savebar">
-          <button class="btn btn-save" id="saveStockBtn">Depo Stoğunu Kaydet</button>
-        </div>
-        <div id="stockMessage"></div>
       </div>
 
-      <div id="oldPanel" class="panel">
-        <div class="panel-title">Gazipaşa Old Girişi</div>
+      <div class="card">
+        <div class="section-title">
+          <h2>Kayıt Özeti</h2>
+          <span>Son okunan satırlar</span>
+        </div>
         <div class="table-wrap">
-          <table>
+          <table class="mini-table">
             <thead>
               <tr>
-                <th>Kod</th>
-                <th>Ürün</th>
-                <th class="num">Gazipaşa Old</th>
+                <th>Plasiyer</th>
+                <th>Müşteri</th>
+                <th>Kalem</th>
+                <th>Tarih</th>
               </tr>
             </thead>
-            <tbody id="oldTableBody"></tbody>
+            <tbody id="recordSummaryBody"></tbody>
           </table>
         </div>
-        <div class="savebar">
-          <button class="btn btn-save" id="saveOldBtn">Gazipaşa Old Kaydet</button>
-        </div>
-        <div id="oldMessage"></div>
       </div>
     </div>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/exceljs/dist/exceljs.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js"></script>
   <script>
-    const PRODUCTS = [
-      { id: '19179-1', code: '19179', name: 'DÖKME AÇIK' },
-      { id: '19173-1', code: '19173', name: 'POŞETLİ' },
-      { id: '33787-1', code: '33787', name: 'MAKSİ' },
-      { id: '25338-1', code: '25338', name: 'POŞETLİ 14' },
-      { id: '19354-1', code: '19354', name: 'DÖKME BAGET' },
-      { id: '19352-1', code: '19352', name: 'DÖKME KALÇALI BUT' },
-      { id: '19355-1', code: '19355', name: 'DÖKME BUT İNCİK' },
-      { id: '4924-1', code: '4924', name: 'DÖKME KEMİKSİZ BUT' },
-      { id: '33836-1', code: '33836', name: 'DÖKME DERİLİ LOKUMSUZ BONFİLE' },
-      { id: '19362-1', code: '19362', name: 'DÖKME BONFİLE' },
-      { id: '19360-1', code: '19360', name: 'DÖKME KOVAN GÖĞÜS' },
-      { id: '19361-1', code: '19361', name: 'DÖKME MUZ GÖĞÜS' },
-      { id: '19367-1', code: '19367', name: 'DÖKME ÇORBALIK' },
-      { id: '19351-1', code: '19351', name: 'DÖKME IZGARALIK KANAT' },
-      { id: '19349-1', code: '19349', name: 'DÖKME SPESİYAL KANAT' },
-      { id: '19348-1', code: '19348', name: 'DÖKME UCLU KANAT' },
-      { id: '19101-1', code: '19101', name: 'TABAKLI KALÇALI BUT' },
-      { id: '19103-1', code: '19103', name: 'TABAKLI BAGET' },
-      { id: '19130-1', code: '19130', name: 'TABAKLI BUT İNCİK' },
-      { id: '19105-1', code: '19105', name: 'TABAKLI IZGARA TAVA' },
-      { id: '36137-1', code: '36137', name: 'TABAKLI SPS KANAT' },
-      { id: '33798-1', code: '33798', name: 'TABAKLI JUMBO KANAT' },
-      { id: '36138-1', code: '36138', name: 'TABAKLI IZGARA KANAT' },
-      { id: '19110-1', code: '19110', name: 'TABAKLI BONFİLE' },
-      { id: '25339-1', code: '25339', name: 'TABAKLI CİĞER' },
-      { id: '19320-1', code: '19320', name: 'TABAKLI TAŞLIK' },
-      { id: '31343-1', code: '31343', name: 'TABAKLI YÜREK' },
-      { id: '2812318-1', code: '2812318', name: 'AL-TAV UÇLU KANAT' },
-      { id: '2812302-1', code: '2812302', name: 'AL-TAV BONFİLE' },
-      { id: '2812313-1', code: '2812313', name: 'AL-TAV KEMİKSİZ BUT' },
-      { id: '2812305-1', code: '2812305', name: 'AL-TAV ÇORBALIK' },
-      { id: '2812310-1', code: '2812310', name: 'AL-TAV KALÇALI BUT' },
-      { id: '2812303-1', code: '2812303', name: 'AL-TAV BUT İNCİK' },
-      { id: '2812306-1', code: '2812306', name: 'AL-TAV DÖNERLİK BONFİLE' },
-      { id: '19027-1', code: '19027', name: 'ŞENPİLİÇ ÇATAL BUT' }
+    /*
+      İstersen buraya sabit plasiyer listesini gir.
+      Böylece veri gelmese bile "giriş yapmayanlar" tarafında görünürler.
+    */
+    const SAHADAKI_PLASIYERLER = [
+      // "Metin İlhan",
+      // "Orhan Sezen",
+      // "Çetin Orhan Gazipaşa"
     ];
 
-    const PLASIYERS = ['Metin İlhan', 'Çetin Orhan Manavgat', 'Orhan Sezen', 'Merkez', 'Gazipaşa'];
+    const POSSIBLE_KEYS = [
+      "siparisler",
+      "siparisler_v2",
+      "siparis_listesi",
+      "siparisKayitlari",
+      "siparis_kayitlari",
+      "orders",
+      "orderList",
+      "appData",
+      "data",
+      "muhasebeData",
+      "senpilicSiparisler",
+      "plasiyerSiparisleri"
+    ];
 
-    const reportDate = document.getElementById('reportDate');
-    const statsRow = document.getElementById('statsRow');
-    const repStatusGrid = document.getElementById('repStatusGrid');
-    const statusArea = document.getElementById('statusArea');
-    const summaryContent = document.getElementById('summaryContent');
-    const stockTableBody = document.getElementById('stockTableBody');
-    const oldTableBody = document.getElementById('oldTableBody');
-    const stockMessage = document.getElementById('stockMessage');
-    const oldMessage = document.getElementById('oldMessage');
-    const exportBtn = document.getElementById('exportBtn');
-    const saveStockBtn = document.getElementById('saveStockBtn');
-    const saveOldBtn = document.getElementById('saveOldBtn');
-    const tabButtons = document.querySelectorAll('.tab-btn');
-    const summaryPanel = document.getElementById('summaryPanel');
-    const stockPanel = document.getElementById('stockPanel');
-    const oldPanel = document.getElementById('oldPanel');
+    let RAW_RECORDS = [];
+    let NORMALIZED_ORDERS = [];
+    let MATRIX_ROWS = [];
+    let SALESPEOPLE = [];
+    let SOURCE_REPORT = [];
 
-    function safeReadArray(key) {
+    const els = {
+      statTotalOrders: document.getElementById("statTotalOrders"),
+      statTotalSales: document.getElementById("statTotalSales"),
+      statActiveSales: document.getElementById("statActiveSales"),
+      statTotalItems: document.getElementById("statTotalItems"),
+      activeSalesList: document.getElementById("activeSalesList"),
+      inactiveSalesList: document.getElementById("inactiveSalesList"),
+      statusInfo: document.getElementById("statusInfo"),
+      sourceInfo: document.getElementById("sourceInfo"),
+      debugBox: document.getElementById("debugBox"),
+      matrixHead: document.getElementById("matrixHead"),
+      matrixBody: document.getElementById("matrixBody"),
+      matrixFoot: document.getElementById("matrixFoot"),
+      salesSummaryBody: document.getElementById("salesSummaryBody"),
+      recordSummaryBody: document.getElementById("recordSummaryBody"),
+      searchInput: document.getElementById("searchInput"),
+      sortSelect: document.getElementById("sortSelect"),
+      jsonFileInput: document.getElementById("jsonFileInput"),
+      manualJson: document.getElementById("manualJson")
+    };
+
+    function safeParse(json, keyName = "") {
       try {
-        const raw = localStorage.getItem(key);
-        if (!raw) return [];
-        const parsed = JSON.parse(raw);
-        return Array.isArray(parsed) ? parsed : [];
+        return JSON.parse(json);
       } catch (e) {
-        console.error(`${key} okunamadı:`, e);
-        return [];
+        SOURCE_REPORT.push(`❌ ${keyName}: JSON parse edilemedi`);
+        return null;
       }
     }
 
-    function safeReadObject(key) {
-      try {
-        const raw = localStorage.getItem(key);
-        if (!raw) return {};
-        const parsed = JSON.parse(raw);
-        return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : {};
-      } catch (e) {
-        console.error(`${key} okunamadı:`, e);
-        return {};
+    function normalizeText(v) {
+      return String(v ?? "")
+        .replace(/\s+/g, " ")
+        .trim();
+    }
+
+    function titleFix(str) {
+      return normalizeText(str)
+        .replace(/\b\w/g, c => c.toLocaleUpperCase("tr-TR"));
+    }
+
+    function toNumber(v) {
+      if (typeof v === "number" && !isNaN(v)) return v;
+      if (typeof v === "string") {
+        let s = v.replace(/\./g, "").replace(",", ".").replace(/[^\d.-]/g, "");
+        let n = parseFloat(s);
+        return isNaN(n) ? 0 : n;
       }
+      return 0;
     }
 
-    let orders = [];
-    let depoStock = {};
-    let gazipasaOld = {};
-
-    function todayDefault() {
-      const now = new Date();
-      const y = now.getFullYear();
-      const m = String(now.getMonth() + 1).padStart(2, '0');
-      const d = String(now.getDate()).padStart(2, '0');
-      return `${y}-${m}-${d}`;
+    function formatNumberTR(v) {
+      return new Intl.NumberFormat("tr-TR", {
+        maximumFractionDigits: 2
+      }).format(v || 0);
     }
 
-    function refreshLocalData() {
-      orders = safeReadArray('siparis_orders');
-      depoStock = safeReadObject('siparis_depo_stock');
-      gazipasaOld = safeReadObject('siparis_gazipasa_old');
-    }
-
-    function dateOrders() {
-      return orders.filter(order => order.date === reportDate.value);
-    }
-
-    function getEnteredAndMissingReps() {
-      const selectedOrders = dateOrders();
-      const enteredReps = [...new Set(selectedOrders.map(order => order.rep))].filter(Boolean);
-      const missingReps = PLASIYERS.filter(rep => !enteredReps.includes(rep));
-      return { enteredReps, missingReps };
-    }
-
-    function buildSummaryRows() {
-      const selectedOrders = dateOrders();
-
-      return PRODUCTS.map(product => {
-        const repValues = {};
-        PLASIYERS.forEach(rep => repValues[rep] = 0);
-
-        selectedOrders.forEach(order => {
-          const value = Number(order.items?.[product.id] || 0);
-          repValues[order.rep] = (repValues[order.rep] || 0) + value;
-        });
-
-        const total = PLASIYERS.reduce((sum, rep) => sum + Number(repValues[rep] || 0), 0);
-
-        return {
-          code: product.code,
-          name: product.name,
-          productId: product.id,
-          repValues,
-          total,
-          depo: Number(depoStock[product.id] || 0),
-          old: Number(gazipasaOld[product.id] || 0)
-        };
-      });
-    }
-
-    function renderStats() {
-      const { enteredReps, missingReps } = getEnteredAndMissingReps();
-      const enteredCount = enteredReps.length;
-      const remainingCount = missingReps.length;
-      const visibleRows = buildSummaryRows().filter(row => row.total > 0);
-      const totalBoxes = visibleRows.reduce((sum, row) => sum + row.total, 0);
-
-      statsRow.innerHTML = `
-        <div class="stat">
-          <div class="stat-label">Girilen Sipariş Sayısı</div>
-          <div class="stat-value">${enteredCount}/${PLASIYERS.length}</div>
-        </div>
-        <div class="stat">
-          <div class="stat-label">Kalan Sipariş Sayısı</div>
-          <div class="stat-value">${remainingCount}</div>
-        </div>
-        <div class="stat">
-          <div class="stat-label">Rapordaki Ürün Sayısı</div>
-          <div class="stat-value">${visibleRows.length}</div>
-        </div>
-        <div class="stat">
-          <div class="stat-label">Toplam Koli</div>
-          <div class="stat-value">${totalBoxes}</div>
-        </div>
-      `;
-
-      repStatusGrid.innerHTML = `
-        <div class="rep-box">
-          <div class="rep-box-title">Giriş Yapan Plasiyerler</div>
-          <div class="rep-tags">
-            ${enteredReps.length ? enteredReps.map(rep => `<span class="rep-tag entered">${rep}</span>`).join('') : '<span class="rep-tag missing">Henüz giriş yok</span>'}
-          </div>
-        </div>
-        <div class="rep-box">
-          <div class="rep-box-title">Giriş Yapmayan Plasiyerler</div>
-          <div class="rep-tags">
-            ${missingReps.length ? missingReps.map(rep => `<span class="rep-tag missing">${rep}</span>`).join('') : '<span class="rep-tag entered">Eksik yok</span>'}
-          </div>
-        </div>
-      `;
-
-      statusArea.innerHTML = enteredCount === PLASIYERS.length
-        ? '<div class="status-box status-ready">Siparişler hazır</div>'
-        : `<div class="status-box status-waiting">Henüz hazır değil. ${remainingCount} plasiyer eksik.</div>`;
-    }
-
-    function renderSummary() {
-      const rows = buildSummaryRows().filter(row => row.total > 0);
-
-      if (!rows.length) {
-        summaryContent.innerHTML = '<div class="empty">Bu tarihte toplamı 0\\'dan büyük sipariş görünmüyor.</div>';
-        return;
+    function tryGet(obj, paths = []) {
+      for (const p of paths) {
+        const parts = p.split(".");
+        let cur = obj;
+        let ok = true;
+        for (const part of parts) {
+          if (cur && Object.prototype.hasOwnProperty.call(cur, part)) {
+            cur = cur[part];
+          } else {
+            ok = false;
+            break;
+          }
+        }
+        if (ok && cur !== undefined && cur !== null && cur !== "") {
+          return cur;
+        }
       }
-
-      summaryContent.innerHTML = `
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Kod</th>
-                <th>Ürün</th>
-                <th class="num">Metin</th>
-                <th class="num">Çetin</th>
-                <th class="num">Orhan</th>
-                <th class="num">Merkez</th>
-                <th class="num">Gazipaşa</th>
-                <th class="num total-col">Toplam</th>
-                <th class="num">Depo Stoğu</th>
-                <th class="num">Gazipaşa Old</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${rows.map(row => `
-                <tr>
-                  <td>${row.code}</td>
-                  <td>${row.name}</td>
-                  <td class="num">${row.repValues['Metin İlhan'] || ''}</td>
-                  <td class="num">${row.repValues['Çetin Orhan Manavgat'] || ''}</td>
-                  <td class="num">${row.repValues['Orhan Sezen'] || ''}</td>
-                  <td class="num">${row.repValues['Merkez'] || ''}</td>
-                  <td class="num">${row.repValues['Gazipaşa'] || ''}</td>
-                  <td class="num total-col">${row.total}</td>
-                  <td class="num">${row.depo || ''}</td>
-                  <td class="num">${row.old || ''}</td>
-                </tr>
-              `).join('')}
-            </tbody>
-          </table>
-        </div>
-      `;
+      return null;
     }
 
-    function renderStockInputs() {
-      stockTableBody.innerHTML = PRODUCTS.map(product => `
-        <tr>
-          <td>${product.code}</td>
-          <td>${product.name}</td>
-          <td class="num"><input type="number" min="0" data-stock-id="${product.id}" value="${depoStock[product.id] ?? ''}" /></td>
-        </tr>
-      `).join('');
-    }
+    function isLikelyOrderObject(obj) {
+      if (!obj || typeof obj !== "object" || Array.isArray(obj)) return false;
 
-    function renderOldInputs() {
-      oldTableBody.innerHTML = PRODUCTS.map(product => `
-        <tr>
-          <td>${product.code}</td>
-          <td>${product.name}</td>
-          <td class="num"><input type="number" min="0" data-old-id="${product.id}" value="${gazipasaOld[product.id] ?? ''}" /></td>
-        </tr>
-      `).join('');
-    }
-
-    function saveStock() {
-      const inputs = document.querySelectorAll('[data-stock-id]');
-      const next = {};
-
-      inputs.forEach(input => {
-        const val = Number(input.value || 0);
-        if (val > 0) next[input.dataset.stockId] = val;
-      });
-
-      depoStock = next;
-      localStorage.setItem('siparis_depo_stock', JSON.stringify(depoStock));
-      stockMessage.innerHTML = '<div class="message">Depo stoğu kaydedildi.</div>';
-      renderSummary();
-    }
-
-    function saveOld() {
-      const inputs = document.querySelectorAll('[data-old-id]');
-      const next = {};
-
-      inputs.forEach(input => {
-        const val = Number(input.value || 0);
-        if (val > 0) next[input.dataset.oldId] = val;
-      });
-
-      gazipasaOld = next;
-      localStorage.setItem('siparis_gazipasa_old', JSON.stringify(gazipasaOld));
-      oldMessage.innerHTML = '<div class="message">Gazipaşa Old kaydedildi.</div>';
-      renderSummary();
-    }
-
-    async function exportExcel() {
-      const rows = buildSummaryRows().filter(row => row.total > 0);
-
-      const workbook = new ExcelJS.Workbook();
-      const sheet = workbook.addWorksheet('Muhasebe Özeti', {
-        views: [{ state: 'frozen', ySplit: 4, xSplit: 2 }]
-      });
-
-      sheet.columns = [
-        { key: 'code', width: 14 },
-        { key: 'name', width: 36 },
-        { key: 'metin', width: 12 },
-        { key: 'cetin', width: 12 },
-        { key: 'orhan', width: 12 },
-        { key: 'merkez', width: 12 },
-        { key: 'gazipasa', width: 12 },
-        { key: 'toplam', width: 12 },
-        { key: 'depo', width: 14 },
-        { key: 'old', width: 14 }
+      const directSignals = [
+        "plasiyer", "plasiyerAdi", "salesman", "salesRep",
+        "musteri", "customer", "firma", "cari",
+        "urunler", "items", "satirlar", "lines"
       ];
 
-      sheet.mergeCells('A1:J1');
-      sheet.getCell('A1').value = 'SİPARİŞ ÖZETİ';
-      sheet.getCell('A1').font = { bold: true, size: 16, color: { argb: 'FFFFFFFF' } };
-      sheet.getCell('A1').alignment = { horizontal: 'center', vertical: 'middle' };
-      sheet.getCell('A1').fill = {
-        type: 'pattern',
-        pattern: 'solid',
-        fgColor: { argb: '0F766E' }
-      };
-      sheet.getRow(1).height = 26;
+      return directSignals.some(k => k in obj);
+    }
 
-      sheet.mergeCells('A2:J2');
-      sheet.getCell('A2').value = `Rapor Tarihi: ${reportDate.value}`;
-      sheet.getCell('A2').font = { bold: true, color: { argb: '1F2937' } };
-      sheet.getCell('A2').alignment = { horizontal: 'left', vertical: 'middle' };
-      sheet.getCell('A2').fill = {
-        type: 'pattern',
-        pattern: 'solid',
-        fgColor: { argb: 'E6F4F1' }
-      };
+    function extractCandidateArrays(parsed, keyName = "") {
+      let candidates = [];
 
-      sheet.mergeCells('A3:J3');
-      const enteredInfo = getEnteredAndMissingReps();
-      sheet.getCell('A3').value = enteredInfo.enteredReps.length === PLASIYERS.length
-        ? 'Durum: Siparişler hazır'
-        : `Durum: ${enteredInfo.enteredReps.length}/${PLASIYERS.length} plasiyer giriş yaptı`;
-      sheet.getCell('A3').font = { bold: true, color: { argb: '92400E' } };
-      sheet.getCell('A3').fill = {
-        type: 'pattern',
-        pattern: 'solid',
-        fgColor: { argb: 'FFF7ED' }
-      };
-
-      const headerRow = sheet.getRow(4);
-      headerRow.values = ['Kod', 'Ürün', 'Metin', 'Çetin', 'Orhan', 'Merkez', 'Gazipaşa', 'Toplam', 'Depo Stoğu', 'Gazipaşa Old'];
-      headerRow.height = 24;
-
-      headerRow.eachCell((cell, colNumber) => {
-        cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
-        cell.alignment = { horizontal: 'center', vertical: 'middle' };
-        cell.border = {
-          top: { style: 'thin', color: { argb: 'CBD5E1' } },
-          left: { style: 'thin', color: { argb: 'CBD5E1' } },
-          bottom: { style: 'thin', color: { argb: 'CBD5E1' } },
-          right: { style: 'thin', color: { argb: 'CBD5E1' } }
-        };
-
-        let color = '1F2937';
-        if (colNumber <= 2) color = '334155';
-        else if (colNumber >= 3 && colNumber <= 7) color = '1D4ED8';
-        else if (colNumber === 8) color = '0F766E';
-        else if (colNumber >= 9) color = 'D97706';
-
-        cell.fill = {
-          type: 'pattern',
-          pattern: 'solid',
-          fgColor: { argb: color }
-        };
-      });
-
-      rows.forEach((row) => {
-        const excelRow = sheet.addRow([
-          row.code,
-          row.name,
-          row.repValues['Metin İlhan'] || '',
-          row.repValues['Çetin Orhan Manavgat'] || '',
-          row.repValues['Orhan Sezen'] || '',
-          row.repValues['Merkez'] || '',
-          row.repValues['Gazipaşa'] || '',
-          row.total,
-          row.depo || '',
-          row.old || ''
-        ]);
-
-        excelRow.eachCell((cell, colNumber) => {
-          cell.border = {
-            top: { style: 'thin', color: { argb: 'E2E8F0' } },
-            left: { style: 'thin', color: { argb: 'E2E8F0' } },
-            bottom: { style: 'thin', color: { argb: 'E2E8F0' } },
-            right: { style: 'thin', color: { argb: 'E2E8F0' } }
-          };
-          cell.alignment = {
-            vertical: 'middle',
-            horizontal: colNumber >= 3 ? 'right' : 'left'
-          };
-
-          if (colNumber === 1 || colNumber === 2) {
-            cell.fill = {
-              type: 'pattern',
-              pattern: 'solid',
-              fgColor: { argb: 'F8FAFC' }
-            };
+      if (Array.isArray(parsed)) {
+        candidates.push({ source: keyName || "array-root", data: parsed });
+      } else if (parsed && typeof parsed === "object") {
+        for (const [k, v] of Object.entries(parsed)) {
+          if (Array.isArray(v)) {
+            candidates.push({ source: `${keyName}.${k}`, data: v });
           }
+        }
 
-          if (colNumber === 8) {
-            cell.font = { bold: true, color: { argb: '0F172A' } };
-            cell.fill = {
-              type: 'pattern',
-              pattern: 'solid',
-              fgColor: { argb: 'DCFCE7' }
-            };
-          }
+        if (isLikelyOrderObject(parsed)) {
+          candidates.push({ source: `${keyName} (single-order-object)`, data: [parsed] });
+        }
+      }
 
-          if (colNumber === 9 || colNumber === 10) {
-            cell.fill = {
-              type: 'pattern',
-              pattern: 'solid',
-              fgColor: { argb: 'FFF7ED' }
-            };
-          }
-        });
-      });
+      return candidates;
+    }
 
-      const totals = {
-        metin: rows.reduce((sum, row) => sum + Number(row.repValues['Metin İlhan'] || 0), 0),
-        cetin: rows.reduce((sum, row) => sum + Number(row.repValues['Çetin Orhan Manavgat'] || 0), 0),
-        orhan: rows.reduce((sum, row) => sum + Number(row.repValues['Orhan Sezen'] || 0), 0),
-        merkez: rows.reduce((sum, row) => sum + Number(row.repValues['Merkez'] || 0), 0),
-        gazipasa: rows.reduce((sum, row) => sum + Number(row.repValues['Gazipaşa'] || 0), 0),
-        toplam: rows.reduce((sum, row) => sum + Number(row.total || 0), 0),
-        depo: rows.reduce((sum, row) => sum + Number(row.depo || 0), 0),
-        old: rows.reduce((sum, row) => sum + Number(row.old || 0), 0)
-      };
-
-      const totalRow = sheet.addRow([
-        '',
-        'GENEL TOPLAM',
-        totals.metin,
-        totals.cetin,
-        totals.orhan,
-        totals.merkez,
-        totals.gazipasa,
-        totals.toplam,
-        totals.depo || '',
-        totals.old || ''
-      ]);
-
-      totalRow.eachCell((cell, colNumber) => {
-        cell.font = { bold: true, color: { argb: '0F172A' } };
-        cell.border = {
-          top: { style: 'medium', color: { argb: '94A3B8' } },
-          left: { style: 'thin', color: { argb: 'CBD5E1' } },
-          bottom: { style: 'thin', color: { argb: 'CBD5E1' } },
-          right: { style: 'thin', color: { argb: 'CBD5E1' } }
-        };
-        cell.alignment = {
-          vertical: 'middle',
-          horizontal: colNumber >= 3 ? 'right' : 'left'
-        };
-        cell.fill = {
-          type: 'pattern',
-          pattern: 'solid',
-          fgColor: { argb: colNumber === 8 ? 'BBF7D0' : 'E2E8F0' }
-        };
-      });
-
-      sheet.autoFilter = { from: 'A4', to: 'J4' };
-
-      const buffer = await workbook.xlsx.writeBuffer();
-      saveAs(
-        new Blob([buffer], {
-          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-        }),
-        `muhasebe-ozeti-${reportDate.value}.xlsx`
+    function extractSalesperson(order) {
+      return normalizeText(
+        tryGet(order, [
+          "plasiyer",
+          "plasiyerAdi",
+          "plasiyer_ad",
+          "salesman",
+          "salesmanName",
+          "salesRep",
+          "salesRepName",
+          "user",
+          "kullanici",
+          "personel",
+          "ad",
+          "name"
+        ]) || "Bilinmeyen Plasiyer"
       );
     }
 
-    function switchTab(name) {
-      tabButtons.forEach(btn => btn.classList.toggle('active', btn.dataset.tab === name));
-      summaryPanel.classList.toggle('active', name === 'summary');
-      stockPanel.classList.toggle('active', name === 'stock');
-      oldPanel.classList.toggle('active', name === 'old');
+    function extractCustomer(order) {
+      return normalizeText(
+        tryGet(order, [
+          "musteri",
+          "musteriAdi",
+          "musteri_ad",
+          "customer",
+          "customerName",
+          "firma",
+          "firmaAdi",
+          "cari",
+          "cariAdi",
+          "bayi",
+          "sube"
+        ]) || "-"
+      );
     }
 
-    reportDate.addEventListener('change', () => {
-      refreshLocalData();
-      renderStats();
-      renderSummary();
-      renderStockInputs();
-      renderOldInputs();
+    function extractDate(order) {
+      return normalizeText(
+        tryGet(order, [
+          "tarih",
+          "date",
+          "createdAt",
+          "created_at",
+          "kayitTarihi",
+          "siparisTarihi",
+          "timestamp"
+        ]) || "-"
+      );
+    }
+
+    function extractItems(order) {
+      let items = tryGet(order, ["urunler", "items", "satirlar", "lines", "kalemler"]);
+
+      if (!items && typeof order === "object") {
+        const productKeys = Object.keys(order).filter(k =>
+          /urun|ürün|product|item/i.test(k)
+        );
+        const qtyKeys = Object.keys(order).filter(k =>
+          /adet|miktar|qty|quantity/i.test(k)
+        );
+
+        if (productKeys.length && qtyKeys.length) {
+          items = [{
+            urun: order[productKeys[0]],
+            miktar: order[qtyKeys[0]]
+          }];
+        }
+      }
+
+      if (!Array.isArray(items)) return [];
+
+      return items.map(item => {
+        const productName = normalizeText(
+          tryGet(item, [
+            "urun",
+            "urunAdi",
+            "urun_ad",
+            "ürün",
+            "ürünAdi",
+            "product",
+            "productName",
+            "ad",
+            "name"
+          ]) || "-"
+        );
+
+        const qty = toNumber(
+          tryGet(item, [
+            "miktar",
+            "adet",
+            "qty",
+            "quantity",
+            "m",
+            "value"
+          ]) || 0
+        );
+
+        return {
+          product: productName || "-",
+          qty: qty > 0 ? qty : 0
+        };
+      }).filter(x => x.product && x.product !== "-" && x.qty >= 0);
+    }
+
+    function normalizeOrders(rawArray, sourceName) {
+      const normalized = [];
+
+      for (const entry of rawArray) {
+        if (!entry || typeof entry !== "object") continue;
+
+        const salesperson = extractSalesperson(entry);
+        const customer = extractCustomer(entry);
+        const date = extractDate(entry);
+        const items = extractItems(entry);
+
+        if (!items.length) continue;
+
+        normalized.push({
+          sourceName,
+          salesperson,
+          customer,
+          date,
+          items
+        });
+      }
+
+      return normalized;
+    }
+
+    function scanStorage() {
+      SOURCE_REPORT = [];
+      let allNormalized = [];
+      let rawHits = [];
+
+      const importedBackup = localStorage.getItem("__MANUAL_MUHASEBE_BACKUP__");
+      if (importedBackup) {
+        const parsed = safeParse(importedBackup, "__MANUAL_MUHASEBE_BACKUP__");
+        const cands = extractCandidateArrays(parsed, "__MANUAL_MUHASEBE_BACKUP__");
+        cands.forEach(c => {
+          const n = normalizeOrders(c.data, c.source);
+          if (n.length) {
+            allNormalized.push(...n);
+            rawHits.push({ key: c.source, count: n.length });
+            SOURCE_REPORT.push(`✅ İçe aktarılan yedek kullanıldı: ${c.source} (${n.length} kayıt)`);
+          }
+        });
+      }
+
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        const value = localStorage.getItem(key);
+        if (!value) continue;
+
+        const keyLooksRelevant =
+          POSSIBLE_KEYS.includes(key) ||
+          /siparis|order|plasiyer|muhasebe|senpilic|data/i.test(key);
+
+        if (!keyLooksRelevant) continue;
+
+        const parsed = safeParse(value, key);
+        if (!parsed) continue;
+
+        const candidates = extractCandidateArrays(parsed, key);
+
+        if (!candidates.length) {
+          SOURCE_REPORT.push(`ℹ️ ${key}: okunabilir dizi bulunamadı`);
+          continue;
+        }
+
+        let foundAtLeastOne = false;
+
+        candidates.forEach(c => {
+          const normalized = normalizeOrders(c.data, c.source);
+          if (normalized.length) {
+            allNormalized.push(...normalized);
+            rawHits.push({ key: c.source, count: normalized.length });
+            SOURCE_REPORT.push(`✅ ${c.source}: ${normalized.length} kayıt okundu`);
+            foundAtLeastOne = true;
+          }
+        });
+
+        if (!foundAtLeastOne) {
+          SOURCE_REPORT.push(`ℹ️ ${key}: sipariş benzeri veri bulundu ama anlamlı kayıt çıkarılamadı`);
+        }
+      }
+
+      RAW_RECORDS = rawHits;
+      return dedupeOrders(allNormalized);
+    }
+
+    function dedupeOrders(orders) {
+      const seen = new Set();
+      const out = [];
+
+      for (const o of orders) {
+        const signature = JSON.stringify({
+          salesperson: o.salesperson,
+          customer: o.customer,
+          date: o.date,
+          items: o.items
+        });
+
+        if (!seen.has(signature)) {
+          seen.add(signature);
+          out.push(o);
+        }
+      }
+
+      return out;
+    }
+
+    function buildMatrix(orders) {
+      const productMap = new Map();
+      const salesSet = new Set(SAHADAKI_PLASIYERLER.map(x => normalizeText(x)).filter(Boolean));
+      let totalItems = 0;
+
+      orders.forEach(order => {
+        salesSet.add(order.salesperson);
+
+        order.items.forEach(item => {
+          totalItems += item.qty;
+          if (!productMap.has(item.product)) {
+            productMap.set(item.product, {
+              product: item.product,
+              totalsBySales: {},
+              total: 0
+            });
+          }
+          const row = productMap.get(item.product);
+          row.totalsBySales[order.salesperson] = (row.totalsBySales[order.salesperson] || 0) + item.qty;
+          row.total += item.qty;
+        });
+      });
+
+      const salespeople = Array.from(salesSet).filter(Boolean).sort((a,b) => a.localeCompare(b, "tr"));
+      const rows = Array.from(productMap.values());
+
+      return { rows, salespeople, totalItems };
+    }
+
+    function renderStats(orders, salespeople, totalItems) {
+      const active = new Set(orders.map(o => o.salesperson).filter(Boolean));
+      els.statTotalOrders.textContent = orders.length;
+      els.statTotalSales.textContent = salespeople.length;
+      els.statActiveSales.textContent = active.size;
+      els.statTotalItems.textContent = formatNumberTR(totalItems);
+      els.statusInfo.textContent = `${active.size} giriş yapan, ${Math.max(0, salespeople.length - active.size)} giriş yapmayan plasiyer`;
+    }
+
+    function renderSalesStatus(orders, salespeople) {
+      const active = new Set(orders.map(o => o.salesperson).filter(Boolean));
+      const activeList = salespeople.filter(x => active.has(x));
+      const inactiveList = salespeople.filter(x => !active.has(x));
+
+      els.activeSalesList.innerHTML = activeList.length
+        ? activeList.map(name => `<span class="chip ok">${escapeHtml(name)}</span>`).join("")
+        : `<span class="chip ok">Kayıt yok</span>`;
+
+      els.inactiveSalesList.innerHTML = inactiveList.length
+        ? inactiveList.map(name => `<span class="chip no">${escapeHtml(name)}</span>`).join("")
+        : `<span class="chip no">Eksik plasiyer yok</span>`;
+    }
+
+    function renderSourceInfo() {
+      els.sourceInfo.textContent = RAW_RECORDS.length
+        ? `${RAW_RECORDS.length} kaynak bulundu`
+        : `Kayıt bulunamadı`;
+
+      if (!SOURCE_REPORT.length) {
+        els.debugBox.innerHTML = `Hiçbir uygun kaynak bulunamadı.<br><br>
+          Kontrol etmen gereken şeyler:<br>
+          1. Sipariş sayfası ile muhasebe sayfası aynı domain altında mı?<br>
+          2. Siparişler gerçekten localStorage'a yazılıyor mu?<br>
+          3. Gerekirse yedek JSON indirip burada içe aktar.`;
+        return;
+      }
+
+      els.debugBox.innerHTML = SOURCE_REPORT.map(x => escapeHtml(x)).join("<br>");
+    }
+
+    function renderMatrix() {
+      const q = normalizeText(els.searchInput.value).toLocaleLowerCase("tr-TR");
+      const sort = els.sortSelect.value;
+
+      let rows = [...MATRIX_ROWS];
+
+      if (q) {
+        rows = rows.filter(r => r.product.toLocaleLowerCase("tr-TR").includes(q));
+      }
+
+      if (sort === "name") {
+        rows.sort((a,b) => a.product.localeCompare(b.product, "tr"));
+      } else if (sort === "total-desc") {
+        rows.sort((a,b) => b.total - a.total || a.product.localeCompare(b.product, "tr"));
+      } else if (sort === "total-asc") {
+        rows.sort((a,b) => a.total - b.total || a.product.localeCompare(b.product, "tr"));
+      }
+
+      els.matrixHead.innerHTML = `
+        <tr>
+          <th>Ürün</th>
+          ${SALESPEOPLE.map(s => `<th>${escapeHtml(s)}</th>`).join("")}
+          <th>Toplam</th>
+        </tr>
+      `;
+
+      if (!rows.length) {
+        els.matrixBody.innerHTML = `
+          <tr>
+            <td colspan="${SALESPEOPLE.length + 2}" style="text-align:center;padding:24px;">
+              Gösterilecek veri yok
+            </td>
+          </tr>
+        `;
+        els.matrixFoot.innerHTML = "";
+        return;
+      }
+
+      els.matrixBody.innerHTML = rows.map(r => `
+        <tr>
+          <td>${escapeHtml(r.product)}</td>
+          ${SALESPEOPLE.map(s => {
+            const qty = r.totalsBySales[s] || 0;
+            return `<td>${qty > 0 ? `<span class="qty">${formatNumberTR(qty)}</span>` : `<span class="zero">-</span>`}</td>`;
+          }).join("")}
+          <td><span class="qty">${formatNumberTR(r.total)}</span></td>
+        </tr>
+      `).join("");
+
+      const colTotals = {};
+      SALESPEOPLE.forEach(s => colTotals[s] = 0);
+      rows.forEach(r => {
+        SALESPEOPLE.forEach(s => {
+          colTotals[s] += (r.totalsBySales[s] || 0);
+        });
+      });
+      const grandTotal = rows.reduce((a,b) => a + b.total, 0);
+
+      els.matrixFoot.innerHTML = `
+        <tr>
+          <td class="tfoot-cell">Genel Toplam</td>
+          ${SALESPEOPLE.map(s => `<td class="tfoot-cell">${formatNumberTR(colTotals[s] || 0)}</td>`).join("")}
+          <td class="tfoot-cell">${formatNumberTR(grandTotal)}</td>
+        </tr>
+      `;
+    }
+
+    function renderSalesSummary(orders) {
+      const totals = {};
+      orders.forEach(o => {
+        if (!totals[o.salesperson]) totals[o.salesperson] = 0;
+        o.items.forEach(i => totals[o.salesperson] += i.qty);
+      });
+
+      const rows = SALESPEOPLE.map(name => ({
+        name,
+        total: totals[name] || 0
+      })).sort((a,b) => b.total - a.total || a.name.localeCompare(b.name, "tr"));
+
+      els.salesSummaryBody.innerHTML = rows.length
+        ? rows.map(r => `
+          <tr>
+            <td>${escapeHtml(r.name)}</td>
+            <td><b>${formatNumberTR(r.total)}</b></td>
+          </tr>
+        `).join("")
+        : `<tr><td colspan="2" style="text-align:center;padding:18px;">Veri yok</td></tr>`;
+    }
+
+    function renderRecordSummary(orders) {
+      const rows = [...orders].slice(0, 20);
+      els.recordSummaryBody.innerHTML = rows.length
+        ? rows.map(r => `
+          <tr>
+            <td>${escapeHtml(r.salesperson)}</td>
+            <td>${escapeHtml(r.customer)}</td>
+            <td>${r.items.length}</td>
+            <td>${escapeHtml(r.date)}</td>
+          </tr>
+        `).join("")
+        : `<tr><td colspan="4" style="text-align:center;padding:18px;">Veri yok</td></tr>`;
+    }
+
+    function loadData() {
+      NORMALIZED_ORDERS = scanStorage();
+
+      const { rows, salespeople, totalItems } = buildMatrix(NORMALIZED_ORDERS);
+      MATRIX_ROWS = rows;
+      SALESPEOPLE = salespeople;
+
+      renderStats(NORMALIZED_ORDERS, SALESPEOPLE, totalItems);
+      renderSalesStatus(NORMALIZED_ORDERS, SALESPEOPLE);
+      renderSourceInfo();
+      renderMatrix();
+      renderSalesSummary(NORMALIZED_ORDERS);
+      renderRecordSummary(NORMALIZED_ORDERS);
+    }
+
+    function exportExcel() {
+      if (!MATRIX_ROWS.length) {
+        alert("İndirilecek veri yok.");
+        return;
+      }
+
+      const wb = XLSX.utils.book_new();
+
+      const matrixData = [];
+      const header = ["Ürün", ...SALESPEOPLE, "Toplam"];
+      matrixData.push(header);
+
+      MATRIX_ROWS.forEach(r => {
+        matrixData.push([
+          r.product,
+          ...SALESPEOPLE.map(s => r.totalsBySales[s] || 0),
+          r.total
+        ]);
+      });
+
+      const totalsRow = ["Genel Toplam"];
+      SALESPEOPLE.forEach(s => {
+        totalsRow.push(MATRIX_ROWS.reduce((sum, r) => sum + (r.totalsBySales[s] || 0), 0));
+      });
+      totalsRow.push(MATRIX_ROWS.reduce((sum, r) => sum + r.total, 0));
+      matrixData.push(totalsRow);
+
+      const ws1 = XLSX.utils.aoa_to_sheet(matrixData);
+
+      ws1["!cols"] = [
+        { wch: 35 },
+        ...SALESPEOPLE.map(() => ({ wch: 16 })),
+        { wch: 16 }
+      ];
+
+      for (let c = 0; c < header.length; c++) {
+        const cellRef = XLSX.utils.encode_cell({ r: 0, c });
+        if (ws1[cellRef]) {
+          ws1[cellRef].s = {
+            font: { bold: true, color: { rgb: "FFFFFF" } },
+            fill: { fgColor: { rgb: "0F766E" } },
+            alignment: { horizontal: "center", vertical: "center" }
+          };
+        }
+      }
+
+      const lastRowIdx = matrixData.length - 1;
+      for (let c = 0; c < header.length; c++) {
+        const cellRef = XLSX.utils.encode_cell({ r: lastRowIdx, c });
+        if (ws1[cellRef]) {
+          ws1[cellRef].s = {
+            font: { bold: true },
+            fill: { fgColor: { rgb: "DFF7F5" } },
+            alignment: { horizontal: "center" }
+          };
+        }
+      }
+
+      XLSX.utils.book_append_sheet(wb, ws1, "Urun Matrisi");
+
+      const summaryData = [["Plasiyer", "Toplam"]];
+      SALESPEOPLE.forEach(s => {
+        summaryData.push([
+          s,
+          MATRIX_ROWS.reduce((sum, r) => sum + (r.totalsBySales[s] || 0), 0)
+        ]);
+      });
+
+      const ws2 = XLSX.utils.aoa_to_sheet(summaryData);
+      ws2["!cols"] = [{ wch: 30 }, { wch: 18 }];
+      XLSX.utils.book_append_sheet(wb, ws2, "Plasiyer Ozeti");
+
+      XLSX.writeFile(wb, "muhasebe_raporu.xlsx");
+    }
+
+    function downloadBackup() {
+      const data = localStorage.getItem("__MANUAL_MUHASEBE_BACKUP__");
+      const payload = data || JSON.stringify(NORMALIZED_ORDERS, null, 2);
+
+      const blob = new Blob([payload], { type: "application/json;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "muhasebe_yedek.json";
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function clearImportedBackup() {
+      localStorage.removeItem("__MANUAL_MUHASEBE_BACKUP__");
+      loadData();
+      alert("İçe aktarılan yedek silindi.");
+    }
+
+    function useManualJson() {
+      const txt = els.manualJson.value.trim();
+      if (!txt) {
+        alert("Yapıştırılmış JSON yok.");
+        return;
+      }
+      try {
+        JSON.parse(txt);
+        localStorage.setItem("__MANUAL_MUHASEBE_BACKUP__", txt);
+        loadData();
+        alert("Elle yapıştırılan veri kaydedildi ve yüklendi.");
+      } catch (e) {
+        alert("JSON hatalı. Bi zahmet düzgün veri yapıştır.");
+      }
+    }
+
+    function escapeHtml(str) {
+      return String(str)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    els.searchInput.addEventListener("input", renderMatrix);
+    els.sortSelect.addEventListener("change", renderMatrix);
+
+    els.jsonFileInput.addEventListener("change", function(e) {
+      const file = e.target.files?.[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        try {
+          const text = evt.target.result;
+          JSON.parse(text);
+          localStorage.setItem("__MANUAL_MUHASEBE_BACKUP__", text);
+          loadData();
+          alert("JSON başarıyla içe aktarıldı.");
+        } catch (err) {
+          alert("Dosya geçerli JSON değil.");
+        }
+      };
+      reader.readAsText(file, "utf-8");
+      e.target.value = "";
     });
 
-    exportBtn.addEventListener('click', exportExcel);
-    saveStockBtn.addEventListener('click', saveStock);
-    saveOldBtn.addEventListener('click', saveOld);
-
-    tabButtons.forEach(btn => {
-      btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+    window.addEventListener("storage", function() {
+      loadData();
     });
 
-    window.addEventListener('DOMContentLoaded', () => {
-      reportDate.value = todayDefault();
-      refreshLocalData();
-      renderStats();
-      renderSummary();
-      renderStockInputs();
-      renderOldInputs();
-    });
+    loadData();
   </script>
 </body>
 </html>
