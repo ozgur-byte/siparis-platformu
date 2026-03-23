@@ -6,142 +6,326 @@
   <title>Muhasebe Ekranı</title>
   <style>
     :root{
-      --bg:#f4f7fb;
-      --card:#ffffff;
+      --bg1:#f7f8ff;
+      --bg2:#eefaf6;
+      --card:#ffffffcc;
+      --card-strong:#ffffff;
       --text:#1f2937;
       --muted:#6b7280;
-      --line:#d9e2ec;
+      --line:#e5e7eb;
+      --shadow:0 12px 35px rgba(31,41,55,.08);
+      --blue:#4f46e5;
+      --blue-soft:#eef2ff;
       --green:#0f766e;
       --green-soft:#ecfdf5;
-      --red:#b91c1c;
+      --red:#dc2626;
       --red-soft:#fef2f2;
-      --blue:#1d4ed8;
-      --blue-soft:#eff6ff;
       --amber:#b45309;
       --amber-soft:#fff7ed;
+      --pink:#db2777;
+      --pink-soft:#fdf2f8;
+      --gold:#a16207;
+      --gold-soft:#fefce8;
     }
 
     *{box-sizing:border-box}
 
     body{
       margin:0;
-      font-family:Arial, Helvetica, sans-serif;
-      background:var(--bg);
+      font-family: "Segoe UI", Arial, Helvetica, sans-serif;
       color:var(--text);
+      background:
+        radial-gradient(circle at top left, #ffffff 0%, var(--bg1) 40%, var(--bg2) 100%);
+      min-height:100vh;
     }
 
     .wrap{
-      max-width:1200px;
+      max-width:1280px;
       margin:0 auto;
-      padding:14px;
+      padding:20px;
+    }
+
+    .hero{
+      position:relative;
+      overflow:hidden;
+      border-radius:30px;
+      padding:24px;
+      margin-bottom:18px;
+      background:linear-gradient(135deg, #ffffff 0%, #f4f7ff 55%, #eefcf7 100%);
+      border:1px solid #eef2f7;
+      box-shadow:var(--shadow);
+    }
+
+    .hero:before,
+    .hero:after{
+      content:"";
+      position:absolute;
+      border-radius:999px;
+      filter:blur(8px);
+      opacity:.55;
+      pointer-events:none;
+    }
+
+    .hero:before{
+      width:220px;
+      height:220px;
+      right:-60px;
+      top:-70px;
+      background:#ddd6fe;
+    }
+
+    .hero:after{
+      width:180px;
+      height:180px;
+      left:-50px;
+      bottom:-80px;
+      background:#bbf7d0;
+    }
+
+    .hero-top{
+      position:relative;
+      z-index:1;
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap:14px;
+      flex-wrap:wrap;
+    }
+
+    .title-wrap h1{
+      margin:0 0 8px 0;
+      font-size:34px;
+      line-height:1.15;
+      letter-spacing:-.5px;
+    }
+
+    .subtitle{
+      color:var(--muted);
+      font-size:15px;
+      line-height:1.5;
+      max-width:700px;
+    }
+
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:10px 14px;
+      border-radius:999px;
+      background:#fff;
+      border:1px solid #ebeef5;
+      font-size:13px;
+      font-weight:800;
+      color:#374151;
+      box-shadow:0 8px 18px rgba(15,23,42,.05);
+      white-space:nowrap;
+    }
+
+    .cards{
+      display:grid;
+      grid-template-columns:repeat(4,1fr);
+      gap:14px;
+      margin-bottom:16px;
     }
 
     .card{
       background:var(--card);
-      border:1px solid var(--line);
-      border-radius:22px;
-      box-shadow:0 2px 10px rgba(15,23,42,.04);
-      padding:16px;
-      margin-bottom:14px;
+      backdrop-filter:blur(8px);
+      border:1px solid rgba(255,255,255,.7);
+      border-radius:26px;
+      box-shadow:var(--shadow);
+      padding:18px;
     }
 
-    h1,h2,h3{
-      margin:0 0 12px 0;
-      line-height:1.2;
+    .stat{
+      position:relative;
+      overflow:hidden;
+      min-height:132px;
     }
 
-    h1{font-size:28px}
-    h2{font-size:22px}
-    h3{font-size:18px}
-
-    .topbar{
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      gap:12px;
-      flex-wrap:wrap;
+    .stat:after{
+      content:"";
+      position:absolute;
+      width:95px;
+      height:95px;
+      right:-18px;
+      bottom:-18px;
+      border-radius:24px;
+      opacity:.12;
+      transform:rotate(16deg);
     }
 
-    .controls{
+    .stat.blue{background:linear-gradient(180deg,#f7f8ff 0%,#eef2ff 100%)}
+    .stat.green{background:linear-gradient(180deg,#f5fffb 0%,#ecfdf5 100%)}
+    .stat.red{background:linear-gradient(180deg,#fff8f8 0%,#fef2f2 100%)}
+    .stat.gold{background:linear-gradient(180deg,#fffdf5 0%,#fefce8 100%)}
+
+    .stat.blue:after{background:var(--blue)}
+    .stat.green:after{background:var(--green)}
+    .stat.red:after{background:var(--red)}
+    .stat.gold:after{background:var(--gold)}
+
+    .stat-label{
+      font-size:13px;
+      color:var(--muted);
+      font-weight:800;
+      margin-bottom:10px;
+      position:relative;
+      z-index:1;
+    }
+
+    .stat-value{
+      font-size:36px;
+      font-weight:900;
+      line-height:1;
+      margin-bottom:10px;
+      position:relative;
+      z-index:1;
+    }
+
+    .stat-note{
+      font-size:13px;
+      color:#4b5563;
+      line-height:1.45;
+      position:relative;
+      z-index:1;
+    }
+
+    .toolbar{
       display:grid;
-      grid-template-columns:220px 180px 1fr;
-      gap:10px;
+      grid-template-columns:230px 170px 170px 1fr;
+      gap:12px;
+      margin-bottom:16px;
       align-items:end;
     }
 
-    label{
+    .field label{
       display:block;
+      margin-bottom:8px;
       font-size:13px;
-      font-weight:700;
-      margin-bottom:6px;
+      font-weight:800;
       color:var(--muted);
     }
 
-    input, button{
+    input[type="date"],
+    button{
       width:100%;
-      min-height:48px;
-      border-radius:16px;
-      border:2px solid #d1d9e6;
-      padding:10px 14px;
+      min-height:52px;
+      border-radius:18px;
+      padding:12px 16px;
       font-size:16px;
+    }
+
+    input[type="date"]{
+      border:2px solid #dde4ef;
       background:#fff;
+      color:var(--text);
+      outline:none;
+      transition:.15s ease;
+    }
+
+    input[type="date"]:focus{
+      border-color:#c7d2fe;
+      box-shadow:0 0 0 4px rgba(99,102,241,.08);
     }
 
     button{
-      cursor:pointer;
-      font-weight:700;
       border:none;
+      cursor:pointer;
       color:#fff;
-      background:var(--blue);
+      font-weight:800;
+      letter-spacing:.1px;
+      transition:.15s ease;
+      box-shadow:0 10px 22px rgba(15,23,42,.10);
     }
 
-    button:hover{filter:brightness(.96)}
-    .btn-green{background:var(--green)}
-    .btn-blue{background:var(--blue)}
+    button:hover{transform:translateY(-1px)}
+    button:active{transform:translateY(1px)}
 
-    .grid-4{
-      display:grid;
-      grid-template-columns:repeat(4,1fr);
-      gap:12px;
+    .btn-refresh{
+      background:linear-gradient(135deg,#10b981 0%, #0f766e 100%);
     }
 
-    .mini{
+    .btn-excel{
+      background:linear-gradient(135deg,#6366f1 0%, #4338ca 100%);
+    }
+
+    .status{
+      display:flex;
+      align-items:center;
+      min-height:52px;
       border-radius:18px;
-      padding:14px;
-      border:1px solid var(--line);
+      padding:12px 16px;
+      font-size:14px;
+      font-weight:800;
+      background:#f8fafc;
+      color:#334155;
+      border:1px solid #e5e7eb;
     }
 
-    .mini .k{
+    .status.loading{
+      background:var(--blue-soft);
+      color:#3730a3;
+      border-color:#c7d2fe;
+    }
+
+    .status.success{
+      background:var(--green-soft);
+      color:#065f46;
+      border-color:#bbf7d0;
+    }
+
+    .status.error{
+      background:var(--red-soft);
+      color:#991b1b;
+      border-color:#fecaca;
+    }
+
+    .two-col{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:16px;
+      margin-bottom:16px;
+    }
+
+    .section-head{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:10px;
+      margin-bottom:14px;
+      flex-wrap:wrap;
+    }
+
+    .section-head h2{
+      margin:0;
+      font-size:22px;
+      letter-spacing:-.2px;
+    }
+
+    .section-sub{
       font-size:13px;
       color:var(--muted);
-      margin-bottom:6px;
       font-weight:700;
     }
-
-    .mini .v{
-      font-size:28px;
-      font-weight:800;
-    }
-
-    .mini.blue{background:var(--blue-soft)}
-    .mini.green{background:var(--green-soft)}
-    .mini.red{background:var(--red-soft)}
-    .mini.amber{background:var(--amber-soft)}
 
     .chips{
       display:flex;
       flex-wrap:wrap;
-      gap:8px;
+      gap:10px;
+      min-height:36px;
     }
 
     .chip{
       display:inline-flex;
       align-items:center;
-      padding:9px 12px;
+      gap:8px;
+      padding:11px 14px;
       border-radius:999px;
       font-size:14px;
-      font-weight:700;
+      font-weight:800;
       border:1px solid transparent;
+      box-shadow:0 8px 20px rgba(15,23,42,.04);
     }
 
     .chip.green{
@@ -156,158 +340,183 @@
       border-color:#fecaca;
     }
 
+    .chip.blue{
+      background:var(--blue-soft);
+      color:var(--blue);
+      border-color:#c7d2fe;
+    }
+
     .empty{
       color:var(--muted);
       font-size:14px;
+      font-weight:700;
+    }
+
+    .table-card{
+      margin-bottom:16px;
     }
 
     .table-wrap{
       overflow:auto;
-      border:1px solid var(--line);
-      border-radius:18px;
+      border-radius:22px;
+      border:1px solid #edf0f5;
+      background:#fff;
     }
 
     table{
       width:100%;
       border-collapse:collapse;
-      background:#fff;
+      min-width:760px;
     }
 
     th, td{
-      padding:12px 10px;
-      border-bottom:1px solid #e8eef5;
+      padding:14px 12px;
+      border-bottom:1px solid #eef2f7;
       text-align:left;
+      vertical-align:middle;
       font-size:14px;
-      vertical-align:top;
     }
 
     th{
-      background:#f8fafc;
-      color:#475569;
       position:sticky;
       top:0;
       z-index:1;
-      font-size:13px;
+      background:#fafbff;
+      color:#475569;
+      font-size:12px;
+      font-weight:900;
+      letter-spacing:.4px;
+      text-transform:uppercase;
     }
 
-    tr:hover td{
-      background:#fafcff;
+    tbody tr:hover td{
+      background:#fbfcff;
     }
 
-    .muted{color:var(--muted)}
+    .rep-name{
+      font-weight:900;
+      font-size:15px;
+    }
 
-    .section-title{
-      display:flex;
-      justify-content:space-between;
+    .rep-badge{
+      display:inline-flex;
       align-items:center;
-      gap:10px;
-      margin-bottom:12px;
-      flex-wrap:wrap;
+      justify-content:center;
+      padding:7px 10px;
+      border-radius:999px;
+      background:#f3f4f6;
+      color:#374151;
+      font-size:12px;
+      font-weight:900;
+      min-width:48px;
     }
 
-    .loading{
-      padding:14px;
-      border-radius:16px;
-      background:#eff6ff;
-      color:#1d4ed8;
+    .footer-note{
+      text-align:center;
+      color:#6b7280;
+      font-size:12px;
       font-weight:700;
-      border:1px solid #bfdbfe;
+      padding:8px 0 18px;
     }
 
-    .error{
-      padding:14px;
-      border-radius:16px;
-      background:#fef2f2;
-      color:#b91c1c;
-      font-weight:700;
-      border:1px solid #fecaca;
+    @media (max-width: 1080px){
+      .cards{grid-template-columns:repeat(2,1fr)}
+      .toolbar{grid-template-columns:1fr 1fr}
+      .toolbar .status{grid-column:1 / -1}
+      .two-col{grid-template-columns:1fr}
     }
 
-    @media (max-width: 900px){
-      .grid-4{
-        grid-template-columns:repeat(2,1fr);
-      }
-      .controls{
-        grid-template-columns:1fr;
-      }
-    }
-
-    @media (max-width: 600px){
-      .grid-4{
-        grid-template-columns:1fr;
-      }
-      h1{font-size:24px}
-      .mini .v{font-size:24px}
+    @media (max-width: 640px){
+      .wrap{padding:12px}
+      .hero{padding:18px;border-radius:24px}
+      .title-wrap h1{font-size:28px}
+      .cards{grid-template-columns:1fr}
+      .toolbar{grid-template-columns:1fr}
+      .stat-value{font-size:32px}
+      .card{border-radius:22px;padding:16px}
     }
   </style>
 </head>
 <body>
   <div class="wrap">
-    <div class="card">
-      <div class="topbar">
-        <div>
+    <div class="hero">
+      <div class="hero-top">
+        <div class="title-wrap">
           <h1>Muhasebe Ekranı</h1>
-          <div class="muted">Google Sheets bağlantılı canlı sipariş özeti</div>
+          <div class="subtitle">
+            Siparişlerin günlük özet görünümü. Gereksiz kalabalık yok. Kim giriş yaptı, kim yapmadı, plasiyer bazlı durum ne, hepsi net. Bir de Excel aktarımı var ki hayatınız biraz daha az yorucu olsun.
+          </div>
         </div>
+        <div class="pill">✨ Premium görünüm • Hızlı filtreleme • Excel aktarımı</div>
       </div>
     </div>
 
-    <div class="card">
-      <div class="controls">
-        <div>
-          <label for="dateFilter">Tarih</label>
-          <input type="date" id="dateFilter" />
-        </div>
-        <div>
-          <label>&nbsp;</label>
-          <button class="btn-green" id="refreshBtn">Verileri Getir</button>
-        </div>
-        <div id="statusBox" class="loading">Hazır.</div>
+    <div class="toolbar">
+      <div class="field">
+        <label for="dateFilter">Tarih</label>
+        <input type="date" id="dateFilter" />
+      </div>
+      <div class="field">
+        <label>&nbsp;</label>
+        <button class="btn-refresh" id="refreshBtn">Verileri Getir</button>
+      </div>
+      <div class="field">
+        <label>&nbsp;</label>
+        <button class="btn-excel" id="excelBtn">Excel'e Aktar</button>
+      </div>
+      <div class="status loading" id="statusBox">Hazır.</div>
+    </div>
+
+    <div class="cards">
+      <div class="card stat blue">
+        <div class="stat-label">Toplam Kayıt Satırı</div>
+        <div class="stat-value" id="totalRows">0</div>
+        <div class="stat-note">Seçili tarihte sisteme düşen toplam kayıt satırı.</div>
+      </div>
+
+      <div class="card stat green">
+        <div class="stat-label">Giriş Yapan Plasiyer</div>
+        <div class="stat-value" id="enteredCount">0</div>
+        <div class="stat-note">Bugün formu açıp kayıt geçen plasiyer sayısı.</div>
+      </div>
+
+      <div class="card stat red">
+        <div class="stat-label">Giriş Yapmayan Plasiyer</div>
+        <div class="stat-value" id="notEnteredCount">0</div>
+        <div class="stat-note">Listede olup bugün hiç kayıt geçmeyenler.</div>
+      </div>
+
+      <div class="card stat gold">
+        <div class="stat-label">Toplam Koli</div>
+        <div class="stat-value" id="totalQty">0</div>
+        <div class="stat-note">Seçili tarihte sisteme girilmiş toplam koli.</div>
       </div>
     </div>
 
-    <div class="card">
-      <div class="section-title">
-        <h2>Genel Durum</h2>
+    <div class="two-col">
+      <div class="card">
+        <div class="section-head">
+          <h2>Giriş Yapanlar</h2>
+          <div class="section-sub">Bugün sisteme veri girmiş ekip</div>
+        </div>
+        <div class="chips" id="girisYapanlar"></div>
       </div>
-      <div class="grid-4">
-        <div class="mini blue">
-          <div class="k">Toplam Kayıt</div>
-          <div class="v" id="totalRows">0</div>
+
+      <div class="card">
+        <div class="section-head">
+          <h2>Giriş Yapmayanlar</h2>
+          <div class="section-sub">Henüz kayıt geçmemiş olanlar</div>
         </div>
-        <div class="mini green">
-          <div class="k">Giriş Yapan Plasiyer</div>
-          <div class="v" id="enteredCount">0</div>
-        </div>
-        <div class="mini red">
-          <div class="k">Giriş Yapmayan Plasiyer</div>
-          <div class="v" id="notEnteredCount">0</div>
-        </div>
-        <div class="mini amber">
-          <div class="k">Toplam Koli</div>
-          <div class="v" id="totalQty">0</div>
-        </div>
+        <div class="chips" id="girisYapmayanlar"></div>
       </div>
     </div>
 
-    <div class="card">
-      <div class="section-title">
-        <h2>Giriş Yapanlar</h2>
-      </div>
-      <div class="chips" id="girisYapanlar"></div>
-    </div>
-
-    <div class="card">
-      <div class="section-title">
-        <h2>Giriş Yapmayanlar</h2>
-      </div>
-      <div class="chips" id="girisYapmayanlar"></div>
-    </div>
-
-    <div class="card">
-      <div class="section-title">
+    <div class="card table-card">
+      <div class="section-head">
         <h2>Plasiyer Bazlı Özet</h2>
+        <div class="section-sub">Ürün çeşidi, toplam koli ve son kayıt bilgisi</div>
       </div>
+
       <div class="table-wrap">
         <table>
           <thead>
@@ -316,6 +525,7 @@
               <th>Ürün Çeşidi</th>
               <th>Toplam Koli</th>
               <th>Son Kayıt</th>
+              <th>Durum</th>
             </tr>
           </thead>
           <tbody id="repSummaryBody"></tbody>
@@ -323,42 +533,8 @@
       </div>
     </div>
 
-    <div class="card">
-      <div class="section-title">
-        <h2>Ürün Toplamları</h2>
-      </div>
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Sıra</th>
-              <th>Ürün</th>
-              <th>Toplam Koli</th>
-            </tr>
-          </thead>
-          <tbody id="productSummaryBody"></tbody>
-        </table>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="section-title">
-        <h2>Detay Kayıtlar</h2>
-      </div>
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Tarih Saat</th>
-              <th>Plasiyer</th>
-              <th>Ürün</th>
-              <th>Miktar</th>
-              <th>Açıklama</th>
-            </tr>
-          </thead>
-          <tbody id="detailBody"></tbody>
-        </table>
-      </div>
+    <div class="footer-note">
+      Seçilen tarihe göre özet gösterilir. Excel çıktısı özel matris formatında indirilir.
     </div>
   </div>
 
@@ -373,46 +549,46 @@
       "Gazipaşa"
     ];
 
-    const URUN_SIRASI = [
-      "DÖKME AÇIK",
-      "POŞETLİ",
-      "MAKSİ",
-      "POŞETLİ 14",
-      "DÖKME BAGET",
-      "DÖKME KALÇALI BUT",
-      "DÖKME BUT İNCİK",
-      "DÖKME KEMİKSİZ BUT",
-      "DÖKME DERİLİ LOKUMSUZ BONFİLE",
-      "DÖKME BONFİLE",
-      "DÖKME KOVAN GÖĞÜS",
-      "DÖKME MUZ GÖĞÜS",
-      "DÖKME ÇORBALIK",
-      "DÖKME IZGARALIK KANAT",
-      "DÖKME SPESİYAL KANAT",
-      "DÖKME UCLU KANAT",
-      "TABAKLI KALÇALI BUT",
-      "TABAKLI BAGET",
-      "TABAKLI BUT İNCİK",
-      "TABAKLI IZGARA TAVA",
-      "TABAKLI SPS KANAT",
-      "TABAKLI JUMBO KANAT",
-      "TABAKLI IZGARA KANAT",
-      "TABAKLI BONFİLE",
-      "TABAKLI CİĞER",
-      "TABAKLI TAŞLIK",
-      "TABAKLI YÜREK",
-      "AL-TAV UÇLU KANAT",
-      "AL-TAV BONFİLE",
-      "AL-TAV KEMİKSİZ BUT",
-      "AL-TAV ÇORBALIK",
-      "AL-TAV KALÇALI BUT",
-      "AL-TAV BUT İNCİK",
-      "AL-TAV DÖNERLİK BONFİLE",
-      "ŞENPİLİÇ ÇATAL BUT"
+    const URUN_LISTESI = [
+      { kod: "19179", ad: "DÖKME AÇIK" },
+      { kod: "19173", ad: "POŞETLİ" },
+      { kod: "33787", ad: "MAKSİ" },
+      { kod: "25338", ad: "POŞETLİ 14" },
+      { kod: "19354", ad: "DÖKME BAGET" },
+      { kod: "19352", ad: "DÖKME KALÇALI BUT" },
+      { kod: "19355", ad: "DÖKME BUT İNCİK" },
+      { kod: "4924", ad: "DÖKME KEMİKSİZ BUT" },
+      { kod: "33836", ad: "DÖKME DERİLİ LOKUMSUZ BONFİLE" },
+      { kod: "19362", ad: "DÖKME BONFİLE" },
+      { kod: "19360", ad: "DÖKME KOVAN GÖĞÜS" },
+      { kod: "19361", ad: "DÖKME MUZ GÖĞÜS" },
+      { kod: "19367", ad: "DÖKME ÇORBALIK" },
+      { kod: "19351", ad: "DÖKME IZGARALIK KANAT" },
+      { kod: "19349", ad: "DÖKME SPESİYAL KANAT" },
+      { kod: "19348", ad: "DÖKME UCLU KANAT" },
+      { kod: "19101", ad: "TABAKLI KALÇALI BUT" },
+      { kod: "19103", ad: "TABAKLI BAGET" },
+      { kod: "19130", ad: "TABAKLI BUT İNCİK" },
+      { kod: "19105", ad: "TABAKLI IZGARA TAVA" },
+      { kod: "36137", ad: "TABAKLI SPS KANAT" },
+      { kod: "36138", ad: "TABAKLI IZGARA KANAT" },
+      { kod: "19110", ad: "TABAKLI BONFİLE" },
+      { kod: "25339", ad: "TABAKLI CİĞER" },
+      { kod: "19320", ad: "TABAKLI TAŞLIK" },
+      { kod: "31343", ad: "TABAKLI YÜREK" },
+      { kod: "2812318", ad: "AL-TAV UÇLU KANAT" },
+      { kod: "2812302", ad: "AL-TAV BONFİLE" },
+      { kod: "2812313", ad: "AL-TAV KEMİKSİZ BUT" },
+      { kod: "2812305", ad: "AL-TAV ÇORBALIK" },
+      { kod: "2812310", ad: "AL-TAV KALÇALI BUT" },
+      { kod: "2812303", ad: "AL-TAV BUT İNCİK" },
+      { kod: "2812306", ad: "AL-TAV DÖNERLİK BONFİLE" },
+      { kod: "19027", ad: "ŞENPİLİÇ ÇATAL BUT" }
     ];
 
     const dateFilter = document.getElementById("dateFilter");
     const refreshBtn = document.getElementById("refreshBtn");
+    const excelBtn = document.getElementById("excelBtn");
     const statusBox = document.getElementById("statusBox");
 
     const totalRows = document.getElementById("totalRows");
@@ -422,10 +598,7 @@
 
     const girisYapanlar = document.getElementById("girisYapanlar");
     const girisYapmayanlar = document.getElementById("girisYapmayanlar");
-
     const repSummaryBody = document.getElementById("repSummaryBody");
-    const productSummaryBody = document.getElementById("productSummaryBody");
-    const detailBody = document.getElementById("detailBody");
 
     function todayIso() {
       const now = new Date();
@@ -436,7 +609,7 @@
     }
 
     function setStatus(text, type = "loading") {
-      statusBox.className = type;
+      statusBox.className = `status ${type}`;
       statusBox.textContent = text;
     }
 
@@ -453,7 +626,8 @@
       if (!trDate) return "";
       if (trDate.includes("-")) return trDate.slice(0, 10);
 
-      const parts = trDate.split(" ")[0].split(".");
+      const rawDate = trDate.split(" ")[0];
+      const parts = rawDate.split(".");
       if (parts.length !== 3) return "";
 
       const [dd, mm, yyyy] = parts;
@@ -482,7 +656,7 @@
       }
 
       container.innerHTML = arr
-        .map(item => `<span class="chip ${type}">${escapeHtml(item)}</span>`)
+        .map(item => `<span class="chip ${type}">• ${escapeHtml(item)}</span>`)
         .join("");
     }
 
@@ -529,94 +703,122 @@
         }
       });
 
-      const rowsHtml = PLASIYERLER.map(rep => {
+      repSummaryBody.innerHTML = PLASIYERLER.map(rep => {
         const data = map[rep];
-        return {
-          rep,
-          urunCesidi: data ? data.urunler.size : 0,
-          toplam: data ? data.toplam : 0,
-          sonKayit: data ? data.sonKayit : "-"
-        };
-      });
+        const urunCesidi = data ? data.urunler.size : 0;
+        const toplam = data ? data.toplam : 0;
+        const sonKayit = data ? data.sonKayit : "-";
+        const durum = data
+          ? `<span class="chip green">Aktif</span>`
+          : `<span class="chip red">Bekliyor</span>`;
 
-      repSummaryBody.innerHTML = rowsHtml.map(item => `
-        <tr>
-          <td>${escapeHtml(item.rep)}</td>
-          <td>${item.urunCesidi}</td>
-          <td>${item.toplam}</td>
-          <td>${escapeHtml(item.sonKayit)}</td>
-        </tr>
-      `).join("");
+        return `
+          <tr>
+            <td><div class="rep-name">${escapeHtml(rep)}</div></td>
+            <td><span class="rep-badge">${urunCesidi}</span></td>
+            <td><span class="rep-badge">${toplam}</span></td>
+            <td>${escapeHtml(sonKayit)}</td>
+            <td>${durum}</td>
+          </tr>
+        `;
+      }).join("");
     }
 
-    function renderProductSummary(rows) {
-      const totals = {};
+    function buildExcelMatrix(rows) {
+      const repMap = {
+        "Metin İlhan": "ALANYA",
+        "Çetin Orhan Manavgat": "MANAVGAT",
+        "Orhan Sezen": "YOL BOYU",
+        "Merkez": "MERKEZ",
+        "Gazipaşa": "GAZİPAŞA"
+      };
+
+      const matrix = URUN_LISTESI.map(item => ({
+        kod: item.kod,
+        ad: item.ad,
+        ALANYA: "",
+        MANAVGAT: "",
+        "YOL BOYU": "",
+        MERKEZ: "",
+        "GAZİPAŞA": "",
+        BOS: "",
+        STOK: "",
+        GZP_OLD: ""
+      }));
+
+      const indexByName = {};
+      matrix.forEach((row, i) => {
+        indexByName[row.ad] = i;
+      });
 
       rows.forEach(row => {
         const urun = String(row.urun || "").trim();
+        const rep = String(row.plasiyer || "").trim();
         const miktar = Number(row.miktar || 0);
-        if (!urun || miktar <= 0) return;
 
-        if (!totals[urun]) totals[urun] = 0;
-        totals[urun] += miktar;
+        if (!urun || !rep || miktar <= 0) return;
+        if (!(rep in repMap)) return;
+        if (!(urun in indexByName)) return;
+
+        const targetRow = matrix[indexByName[urun]];
+        const col = repMap[rep];
+        const current = Number(targetRow[col] || 0);
+        targetRow[col] = current + miktar;
       });
 
-      const ordered = [];
-
-      URUN_SIRASI.forEach(urun => {
-        const toplam = totals[urun] || 0;
-        if (toplam > 0) {
-          ordered.push({ urun, toplam });
-        }
-      });
-
-      Object.keys(totals).forEach(urun => {
-        if (!URUN_SIRASI.includes(urun) && totals[urun] > 0) {
-          ordered.push({ urun, toplam: totals[urun] });
-        }
-      });
-
-      if (!ordered.length) {
-        productSummaryBody.innerHTML = `
-          <tr>
-            <td colspan="3" class="muted">Seçilen tarihte ürün kaydı yok.</td>
-          </tr>
-        `;
-        return;
-      }
-
-      productSummaryBody.innerHTML = ordered.map((item, index) => `
-        <tr>
-          <td>${index + 1}</td>
-          <td>${escapeHtml(item.urun)}</td>
-          <td>${item.toplam}</td>
-        </tr>
-      `).join("");
+      return matrix;
     }
 
-    function renderDetails(rows) {
-      if (!rows.length) {
-        detailBody.innerHTML = `
-          <tr>
-            <td colspan="5" class="muted">Seçilen tarihte kayıt yok.</td>
-          </tr>
-        `;
-        return;
-      }
+    function downloadExcelLikeCsv(rows, selectedDate) {
+      const matrix = buildExcelMatrix(rows);
 
-      const sorted = [...rows].sort((a, b) => {
-        return (b.tarihSaat || "").localeCompare(a.tarihSaat || "");
+      const header = [
+        "",
+        "",
+        "ALANYA",
+        "MANAVGAT",
+        "YOL BOYU",
+        "MERKEZ",
+        "GAZİPAŞA",
+        "",
+        "STOK",
+        "GZP_OLD"
+      ];
+
+      const csvRows = [];
+      csvRows.push(header);
+
+      matrix.forEach(row => {
+        csvRows.push([
+          row.kod,
+          row.ad,
+          row.ALANYA,
+          row.MANAVGAT,
+          row["YOL BOYU"],
+          row.MERKEZ,
+          row["GAZİPAŞA"],
+          row.BOS,
+          row.STOK,
+          row.GZP_OLD
+        ]);
       });
 
-      detailBody.innerHTML = sorted.map(row => `
-        <tr>
-          <td>${escapeHtml(row.tarihSaat || "")}</td>
-          <td>${escapeHtml(row.plasiyer || "")}</td>
-          <td>${escapeHtml(row.urun || "")}</td>
-          <td>${Number(row.miktar || 0)}</td>
-          <td>${escapeHtml(row.aciklama || "")}</td>
-        </tr>
-      `).join("");
+      const csvContent = csvRows
+        .map(r => r.map(cell => `"${String(cell ?? "").replace(/"/g, '""')}"`).join(";"))
+        .join("\n");
+
+      const blob = new Blob(["\uFEFF" + csvContent], {
+        type: "text/csv;charset=utf-8;"
+      });
+
+      const link = document.createElement("a");
+      const url = URL.createObjectURL(blob);
+      link.href = url;
+      link.download = `siparis_matrisi_${selectedDate}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
     }
 
     async function loadData() {
@@ -637,10 +839,8 @@
 
         renderSummaryCards(filteredRows);
         renderRepSummary(filteredRows);
-        renderProductSummary(filteredRows);
-        renderDetails(filteredRows);
 
-        setStatus(`${selectedDate} için ${filteredRows.length} kayıt getirildi.`, "loading");
+        setStatus(`${selectedDate} için ${filteredRows.length} kayıt getirildi.`, "success");
       } catch (err) {
         setStatus("Hata: " + err.message, "error");
       } finally {
@@ -649,7 +849,33 @@
       }
     }
 
+    async function exportExcel() {
+      const selectedDate = dateFilter.value;
+
+      if (!selectedDate) {
+        setStatus("Excel için tarih seçin.", "error");
+        return;
+      }
+
+      excelBtn.disabled = true;
+      excelBtn.textContent = "Hazırlanıyor...";
+      setStatus("Excel çıktısı hazırlanıyor...", "loading");
+
+      try {
+        const allRows = await fetchAllRows();
+        const filteredRows = filterRowsByDate(allRows, selectedDate);
+        downloadExcelLikeCsv(filteredRows, selectedDate);
+        setStatus("Excel çıktısı indirildi.", "success");
+      } catch (err) {
+        setStatus("Excel aktarım hatası: " + err.message, "error");
+      } finally {
+        excelBtn.disabled = false;
+        excelBtn.textContent = "Excel'e Aktar";
+      }
+    }
+
     refreshBtn.addEventListener("click", loadData);
+    excelBtn.addEventListener("click", exportExcel);
 
     dateFilter.value = todayIso();
     loadData();
