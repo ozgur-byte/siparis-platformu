@@ -15,6 +15,8 @@
       --primary-dark: #115e59;
       --soft: #eef6f5;
       --danger: #b91c1c;
+      --warning: #92400e;
+      --warning-bg: #fff7ed;
     }
 
     * { box-sizing: border-box; }
@@ -26,7 +28,7 @@
     }
 
     .container {
-      max-width: 1200px;
+      max-width: 820px;
       margin: 0 auto;
       padding: 12px;
     }
@@ -39,25 +41,45 @@
     }
 
     .header {
-      padding: 20px;
+      padding: 18px;
       margin-bottom: 14px;
     }
 
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+
+    .brand img {
+      height: 44px;
+      width: auto;
+      object-fit: contain;
+    }
+
     h1 {
-      margin: 0 0 8px;
-      font-size: 30px;
+      margin: 0;
+      font-size: 28px;
+      line-height: 1.2;
     }
 
-    .sub {
-      color: var(--muted);
+    .rep-badge {
+      display: inline-block;
+      padding: 10px 14px;
+      border-radius: 999px;
+      background: var(--soft);
+      color: var(--primary-dark);
+      font-weight: 700;
       font-size: 14px;
-      line-height: 1.5;
+      margin-top: 8px;
     }
 
-    .layout {
-      display: grid;
-      grid-template-columns: 1.05fr 1.25fr;
-      gap: 14px;
+    .top-actions {
+      margin-top: 12px;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
     }
 
     .card {
@@ -102,7 +124,7 @@
       display: flex;
       flex-direction: column;
       gap: 10px;
-      max-height: 62vh;
+      max-height: 55vh;
       overflow: auto;
       padding-right: 4px;
     }
@@ -137,17 +159,34 @@
       width: 100%;
       min-height: 58px;
       border-radius: 18px;
-      font-size: 20px;
+      font-size: 18px;
       font-weight: 700;
       cursor: pointer;
+      padding: 12px 14px;
     }
 
     .btn:hover { background: var(--primary-dark); }
 
     .btn.secondary {
       background: #1f2937;
-      min-height: 48px;
+      min-height: 52px;
       font-size: 16px;
+    }
+
+    .btn.light {
+      background: #e5e7eb;
+      color: #111827;
+    }
+
+    .btn.danger {
+      background: var(--danger);
+    }
+
+    .actions {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+      margin-top: 14px;
     }
 
     .message {
@@ -159,76 +198,78 @@
       line-height: 1.5;
     }
 
-    .stats {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 12px;
-      margin-bottom: 14px;
-    }
-
-    .stat {
-      background: var(--card);
-      border: 1px solid var(--line);
-      border-radius: 24px;
-      padding: 18px;
-    }
-
-    .stat-label {
-      font-size: 14px;
-      color: var(--muted);
-      margin-bottom: 8px;
-    }
-
-    .stat-value {
-      font-size: 34px;
-      font-weight: 800;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 14px;
-      background: #fff;
-      border-radius: 18px;
-      overflow: hidden;
-    }
-
-    thead {
-      background: #eef2f7;
-    }
-
-    th, td {
-      padding: 12px 14px;
-      border-bottom: 1px solid var(--line);
-      text-align: left;
-    }
-
-    td:last-child, th:last-child {
-      text-align: right;
-    }
-
-    .toolbar {
-      margin-bottom: 14px;
-    }
-
-    .warning {
-      color: var(--danger);
+    .message.warning {
+      background: var(--warning-bg);
+      color: var(--warning);
       font-weight: 700;
-      font-size: 14px;
-      margin-top: 8px;
     }
 
-    @media (max-width: 900px) {
-      .layout {
-        grid-template-columns: 1fr;
-      }
-      .stats {
-        grid-template-columns: 1fr;
-      }
-      h1 {
-        font-size: 26px;
-      }
+    .section {
+      margin-top: 14px;
     }
+
+    .orders-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .order-card {
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      padding: 14px;
+      background: #fff;
+    }
+
+    .order-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: flex-start;
+      margin-bottom: 10px;
+    }
+
+    .order-title {
+      font-size: 17px;
+      font-weight: 700;
+    }
+
+    .order-sub {
+      font-size: 13px;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    .order-total {
+      font-size: 18px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .order-items {
+      margin: 0;
+      padding-left: 18px;
+      color: var(--text);
+      font-size: 14px;
+      line-height: 1.55;
+    }
+
+    .order-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .screen {
+      display: none;
+    }
+
+    .screen.active {
+      display: block;
+    }
+
+    .hidden { display: none; }
 
     @media (max-width: 560px) {
       .container {
@@ -247,24 +288,52 @@
       input[type="number"] {
         font-size: 22px;
       }
+      .order-actions {
+        grid-template-columns: 1fr;
+      }
+      .brand img {
+        height: 38px;
+      }
+      h1 {
+        font-size: 24px;
+      }
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <div class="header">
-      <h1>Sipariş Toplama Platformu</h1>
-      <div class="sub">Plasiyer siparişi hızlı girer, muhasebe kümüle toplamı görür, Excel olarak indirir.</div>
+    <div id="loginScreen" class="screen active">
+      <div class="header">
+        <div class="brand">
+          <img src="logo.png" alt="AL-TAV Logo" onerror="this.style.display='none'" />
+          <h1>Sipariş Giriş Ekranı - Özgür</h1>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="title">Plasiyer Seçimi</div>
+        <div class="field">
+          <label for="repLoginSelect">Plasiyer Adı</label>
+          <select id="repLoginSelect"></select>
+        </div>
+        <button class="btn" id="enterSystemBtn">Devam Et</button>
+      </div>
     </div>
 
-    <div class="layout">
+    <div id="appScreen" class="screen">
+      <div class="header">
+        <div class="brand">
+          <img src="logo.png" alt="AL-TAV Logo" onerror="this.style.display='none'" />
+          <h1>Sipariş Giriş Ekranı - Özgür</h1>
+        </div>
+        <div class="rep-badge" id="activeRepBadge"></div>
+        <div class="top-actions">
+          <button class="btn light" id="changeRepBtn" style="max-width:220px; min-height:46px;">Başka plasiyer seç</button>
+        </div>
+      </div>
+
       <div class="card">
         <div class="title">Plasiyer Sipariş Girişi</div>
-
-        <div class="field">
-          <label for="repSelect">Plasiyer</label>
-          <select id="repSelect"></select>
-        </div>
 
         <div class="field">
           <label for="dateInput">Tarih</label>
@@ -277,51 +346,22 @@
           <button class="btn" id="submitBtn">Gönder</button>
         </div>
 
-        <div class="message" id="messageBox" style="display:none;"></div>
-        <div class="warning">Not: Aynı plasiyer aynı tarihte ikinci kez sipariş girerse sistem uyarı verir ama kaydı yine ekler.</div>
-      </div>
-
-      <div>
-        <div class="stats">
-          <div class="stat">
-            <div class="stat-label">Toplam Sipariş</div>
-            <div class="stat-value" id="totalBoxes">0</div>
-            <div class="sub">koli</div>
-          </div>
-          <div class="stat">
-            <div class="stat-label">Bugünkü Giriş</div>
-            <div class="stat-value" id="todayEntries">0</div>
-            <div class="sub">sipariş kaydı</div>
-          </div>
-          <div class="stat">
-            <div class="stat-label">Excel Çıktısı</div>
-            <div style="margin-top: 12px;">
-              <button class="btn secondary" id="excelBtn">Excel İndir</button>
-            </div>
-          </div>
+        <div class="actions">
+          <button class="btn secondary" id="myOrdersBtn">Siparişlerim</button>
+          <button class="btn light" id="editModeBtn">Siparişime eklemek/çıkarma yapmak istiyorum</button>
+          <button class="btn danger" id="cancelModeBtn">Siparişimi iptal etmek istiyorum</button>
         </div>
 
-        <div class="card">
-          <div class="title">Muhasebe Ekranı</div>
-          <div class="toolbar sub">Ürün bazlı kümüle toplam görünür.</div>
-          <div style="overflow:auto;">
-            <table>
-              <thead>
-                <tr>
-                  <th>Kod</th>
-                  <th>Ürün</th>
-                  <th>Toplam Koli</th>
-                </tr>
-              </thead>
-              <tbody id="summaryTable"></tbody>
-            </table>
-          </div>
+        <div class="message hidden" id="messageBox"></div>
+
+        <div class="section hidden" id="myOrdersSection">
+          <div class="title" style="font-size:20px; margin-top: 6px;">Siparişlerim</div>
+          <div class="orders-list" id="ordersList"></div>
         </div>
       </div>
     </div>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script>
     const PRODUCTS = [
       { id: '19179-1', code: '19179', name: 'DÖKME AÇIK' },
@@ -361,19 +401,30 @@
       { id: '19027-1', code: '19027', name: 'ŞENPİLİÇ ÇATAL BUT' },
     ];
 
+    const HIGH_LIMIT_EXCLUDED_CODES = ['19179', '19173'];
     const PLASIYERS = ['Metin İlhan', 'Çetin Orhan Manavgat', 'Orhan Sezen', 'Merkez', 'Gazipaşa'];
 
-    const repSelect = document.getElementById('repSelect');
+    const loginScreen = document.getElementById('loginScreen');
+    const appScreen = document.getElementById('appScreen');
+    const repLoginSelect = document.getElementById('repLoginSelect');
+    const enterSystemBtn = document.getElementById('enterSystemBtn');
+    const activeRepBadge = document.getElementById('activeRepBadge');
+    const changeRepBtn = document.getElementById('changeRepBtn');
     const dateInput = document.getElementById('dateInput');
     const productsWrap = document.getElementById('products');
     const submitBtn = document.getElementById('submitBtn');
-    const excelBtn = document.getElementById('excelBtn');
+    const myOrdersBtn = document.getElementById('myOrdersBtn');
+    const editModeBtn = document.getElementById('editModeBtn');
+    const cancelModeBtn = document.getElementById('cancelModeBtn');
     const messageBox = document.getElementById('messageBox');
-    const totalBoxesEl = document.getElementById('totalBoxes');
-    const todayEntriesEl = document.getElementById('todayEntries');
-    const summaryTable = document.getElementById('summaryTable');
+    const myOrdersSection = document.getElementById('myOrdersSection');
+    const ordersList = document.getElementById('ordersList');
 
     let orders = JSON.parse(localStorage.getItem('siparis_orders') || '[]');
+    let activeRep = localStorage.getItem('siparis_active_rep') || '';
+    let showOrders = false;
+    let currentMode = 'view';
+    let editingOrderId = null;
 
     function todayDefault() {
       const now = new Date();
@@ -383,13 +434,23 @@
       return `${y}-${m}-${d}`;
     }
 
-    function showMessage(text) {
-      messageBox.style.display = 'block';
+    function showMessage(text, type = 'normal') {
+      messageBox.classList.remove('hidden', 'warning');
+      if (type === 'warning') messageBox.classList.add('warning');
       messageBox.textContent = text;
     }
 
+    function clearMessage() {
+      messageBox.classList.add('hidden');
+      messageBox.classList.remove('warning');
+      messageBox.textContent = '';
+    }
+
     function renderPlasiyers() {
-      repSelect.innerHTML = PLASIYERS.map(name => `<option value="${name}">${name}</option>`).join('');
+      repLoginSelect.innerHTML = PLASIYERS.map(name => `<option value="${name}">${name}</option>`).join('');
+      if (activeRep && PLASIYERS.includes(activeRep)) {
+        repLoginSelect.value = activeRep;
+      }
     }
 
     function renderProducts() {
@@ -399,44 +460,17 @@
             <div class="product-name">${product.name}</div>
             <div class="product-code">Kod: ${product.code}</div>
           </div>
-          <input type="number" min="0" inputmode="numeric" placeholder="Koli" data-id="${product.id}" />
+          <input type="number" min="0" inputmode="numeric" data-id="${product.id}" />
         </div>
       `).join('');
     }
 
-    function totalsByProduct() {
-      const totals = {};
-      PRODUCTS.forEach(p => totals[p.id] = 0);
-      let grandTotal = 0;
-
-      orders.forEach(order => {
-        Object.entries(order.items).forEach(([id, qty]) => {
-          const val = Number(qty) || 0;
-          totals[id] = (totals[id] || 0) + val;
-          grandTotal += val;
-        });
-      });
-
-      return { totals, grandTotal };
-    }
-
-    function renderSummary() {
-      const { totals, grandTotal } = totalsByProduct();
-      totalBoxesEl.textContent = grandTotal;
-      const todayEntries = orders.filter(o => o.date === dateInput.value).length;
-      todayEntriesEl.textContent = todayEntries;
-
-      summaryTable.innerHTML = PRODUCTS.map(product => `
-        <tr>
-          <td>${product.code}</td>
-          <td>${product.name}</td>
-          <td>${totals[product.id] || 0}</td>
-        </tr>
-      `).join('');
+    function getInputs() {
+      return productsWrap.querySelectorAll('input[data-id]');
     }
 
     function collectOrder() {
-      const inputs = productsWrap.querySelectorAll('input[data-id]');
+      const inputs = getInputs();
       const cleanItems = {};
       let total = 0;
 
@@ -452,73 +486,251 @@
     }
 
     function clearInputs() {
-      productsWrap.querySelectorAll('input[data-id]').forEach(input => input.value = '');
+      getInputs().forEach(input => input.value = '');
+      editingOrderId = null;
+      submitBtn.textContent = 'Gönder';
     }
 
     function saveOrders() {
       localStorage.setItem('siparis_orders', JSON.stringify(orders));
     }
 
-    submitBtn.addEventListener('click', () => {
-      const rep = repSelect.value;
+    function saveActiveRep() {
+      localStorage.setItem('siparis_active_rep', activeRep);
+    }
+
+    function generateOrderId() {
+      return `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    }
+
+    function getProductById(id) {
+      return PRODUCTS.find(p => p.id === id);
+    }
+
+    function formatOrderItems(items) {
+      return Object.entries(items)
+        .filter(([, qty]) => Number(qty) > 0)
+        .map(([id, qty]) => {
+          const product = getProductById(id);
+          return `${product ? product.name : id}: ${qty} koli`;
+        });
+    }
+
+    function getActiveRepOrders() {
+      return orders
+        .filter(order => order.rep === activeRep)
+        .sort((a, b) => new Date(b.date) - new Date(a.date));
+    }
+
+    function renderOrdersList() {
+      if (!showOrders) {
+        myOrdersSection.classList.add('hidden');
+        return;
+      }
+
+      myOrdersSection.classList.remove('hidden');
+      const repOrders = getActiveRepOrders();
+
+      if (!repOrders.length) {
+        ordersList.innerHTML = '<div class="order-card">Bu plasiyer için kayıtlı sipariş görünmüyor.</div>';
+        return;
+      }
+
+      ordersList.innerHTML = repOrders.map(order => {
+        const lines = formatOrderItems(order.items);
+        const total = Object.values(order.items).reduce((sum, value) => sum + Number(value || 0), 0);
+        const editButton = currentMode === 'edit'
+          ? `<button class="btn light" onclick="startEditOrder('${order.id}')">Bu siparişi düzenle</button>`
+          : '';
+        const cancelButton = currentMode === 'cancel'
+          ? `<button class="btn danger" onclick="deleteOrder('${order.id}')">Bu siparişi iptal et</button>`
+          : '';
+
+        return `
+          <div class="order-card">
+            <div class="order-head">
+              <div>
+                <div class="order-title">${order.rep}</div>
+                <div class="order-sub">Tarih: ${order.date}</div>
+              </div>
+              <div class="order-total">${total} koli</div>
+            </div>
+            <ul class="order-items">
+              ${lines.map(line => `<li>${line}</li>`).join('')}
+            </ul>
+            ${(editButton || cancelButton) ? `<div class="order-actions">${editButton}${cancelButton}</div>` : ''}
+          </div>
+        `;
+      }).join('');
+    }
+
+    function checkHighQuantityWarnings(cleanItems) {
+      const warnings = Object.entries(cleanItems)
+        .map(([id, qty]) => {
+          const product = getProductById(id);
+          if (!product) return null;
+          if (HIGH_LIMIT_EXCLUDED_CODES.includes(product.code)) return null;
+          if (Number(qty) > 50) return `${product.name} ürünündeki sipariş ${qty} koli. Bu miktar ortalamanın üzerinde.`;
+          return null;
+        })
+        .filter(Boolean);
+
+      if (!warnings.length) return true;
+      return window.confirm(`${warnings.join('\n')}\n\nEmin misin?`);
+    }
+
+    function setActiveRepUI() {
+      activeRepBadge.textContent = `Giriş yapan plasiyer: ${activeRep}`;
+    }
+
+    function switchToApp() {
+      if (!activeRep) return;
+      saveActiveRep();
+      setActiveRepUI();
+      loginScreen.classList.remove('active');
+      appScreen.classList.add('active');
+      renderOrdersList();
+    }
+
+    function switchToLogin() {
+      appScreen.classList.remove('active');
+      loginScreen.classList.add('active');
+      clearInputs();
+      clearMessage();
+      showOrders = false;
+      currentMode = 'view';
+      myOrdersSection.classList.add('hidden');
+    }
+
+    function submitOrder() {
       const date = dateInput.value;
       const { cleanItems, total } = collectOrder();
 
       if (!Object.keys(cleanItems).length) {
-        showMessage('En az bir ürün için koli miktarı girmen gerekiyor.');
+        showMessage('En az bir ürün için koli miktarı girmen gerekiyor.', 'warning');
+        return;
+      }
+
+      const highQtyConfirmed = checkHighQuantityWarnings(cleanItems);
+      if (!highQtyConfirmed) {
+        showMessage('Yüksek koli uyarısı nedeniyle gönderim iptal edildi.', 'warning');
         return;
       }
 
       const confirmed = window.confirm(`Toplam sipariş koli miktarı: ${total} koli. Onaylıyor musun?`);
       if (!confirmed) {
-        showMessage('Sipariş gönderimi iptal edildi.');
+        showMessage('Sipariş gönderimi iptal edildi.', 'warning');
         return;
       }
 
-      const hasPreviousOrderSameDay = orders.some(order => order.rep === rep && order.date === date);
-      orders.push({ rep, date, items: cleanItems });
+      if (editingOrderId) {
+        orders = orders.map(order => order.id === editingOrderId ? { ...order, rep: activeRep, date, items: cleanItems } : order);
+        saveOrders();
+        clearInputs();
+        renderOrdersList();
+        showMessage('Sipariş güncellendi.');
+        return;
+      }
+
+      orders.push({ id: generateOrderId(), rep: activeRep, date, items: cleanItems });
       saveOrders();
       clearInputs();
-      renderSummary();
+      renderOrdersList();
+      showMessage('Sipariş kaydedildi.');
+    }
 
-      if (hasPreviousOrderSameDay) {
-        showMessage(`${rep} için bu tarih adına daha önce sipariş girilmişti. Yeni kayıt eklendi.`);
+    function startEditOrder(orderId) {
+      const order = orders.find(item => item.id === orderId && item.rep === activeRep);
+      if (!order) return;
+
+      dateInput.value = order.date;
+      clearMessage();
+      getInputs().forEach(input => {
+        input.value = order.items[input.dataset.id] ?? '';
+      });
+      editingOrderId = order.id;
+      submitBtn.textContent = 'Güncellemeyi Kaydet';
+      showMessage('Sipariş formu düzenleme için yüklendi. İstediğin ekleme/çıkarma değişikliğini yapıp tekrar kaydet.');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function deleteOrder(orderId) {
+      const order = orders.find(item => item.id === orderId && item.rep === activeRep);
+      if (!order) return;
+      const total = Object.values(order.items).reduce((sum, value) => sum + Number(value || 0), 0);
+      const confirmed = window.confirm(`${order.date} tarihli ${total} kolilik siparişi iptal etmek istiyor musun?`);
+      if (!confirmed) return;
+
+      orders = orders.filter(item => item.id !== orderId);
+      saveOrders();
+      if (editingOrderId === orderId) clearInputs();
+      renderOrdersList();
+      showMessage('Sipariş iptal edildi.');
+    }
+
+    function setMode(mode) {
+      currentMode = mode;
+      editModeBtn.classList.remove('secondary');
+      cancelModeBtn.classList.remove('secondary');
+      editModeBtn.classList.add('light');
+      cancelModeBtn.classList.add('danger');
+
+      if (mode === 'edit') {
+        editModeBtn.classList.remove('light');
+        editModeBtn.classList.add('secondary');
+        showOrders = true;
+        showMessage('Düzenlemek istediğin siparişi aşağıdan seç.', 'warning');
+      } else if (mode === 'cancel') {
+        cancelModeBtn.classList.remove('danger');
+        cancelModeBtn.classList.add('secondary');
+        showOrders = true;
+        showMessage('İptal etmek istediğin siparişi aşağıdan seç.', 'warning');
       } else {
-        showMessage(`${rep} siparişi kaydedildi. Muhasebe toplamına eklendi.`);
+        clearMessage();
       }
+
+      renderOrdersList();
+    }
+
+    window.startEditOrder = startEditOrder;
+    window.deleteOrder = deleteOrder;
+
+    enterSystemBtn.addEventListener('click', () => {
+      activeRep = repLoginSelect.value;
+      switchToApp();
     });
 
-    excelBtn.addEventListener('click', () => {
-      const { totals } = totalsByProduct();
+    changeRepBtn.addEventListener('click', () => {
+      const confirmed = window.confirm('Başka bir plasiyer seçmek istiyor musun?');
+      if (!confirmed) return;
+      activeRep = '';
+      localStorage.removeItem('siparis_active_rep');
+      switchToLogin();
+    });
 
-      const productRows = PRODUCTS.map(p => ({
-        Kod: p.code,
-        Ürün: p.name,
-        'Toplam Koli': totals[p.id] || 0,
-      }));
+    submitBtn.addEventListener('click', submitOrder);
 
-      const orderRows = orders.flatMap(order =>
-        PRODUCTS.filter(p => Number(order.items[p.id]) > 0).map(p => ({
-          Tarih: order.date,
-          Plasiyer: order.rep,
-          Kod: p.code,
-          Ürün: p.name,
-          Koli: Number(order.items[p.id]) || 0,
-        }))
-      );
+    myOrdersBtn.addEventListener('click', () => {
+      showOrders = !showOrders;
+      if (showOrders) clearMessage();
+      renderOrdersList();
+    });
 
-      const workbook = XLSX.utils.book_new();
-      const summarySheet = XLSX.utils.json_to_sheet(productRows);
-      const detailSheet = XLSX.utils.json_to_sheet(orderRows.length ? orderRows : [{ Bilgi: 'Henüz sipariş yok' }]);
-      XLSX.utils.book_append_sheet(workbook, summarySheet, 'Kumule Toplam');
-      XLSX.utils.book_append_sheet(workbook, detailSheet, 'Siparis Detay');
-      XLSX.writeFile(workbook, `siparis-raporu-${dateInput.value}.xlsx`);
+    editModeBtn.addEventListener('click', () => {
+      setMode(currentMode === 'edit' ? 'view' : 'edit');
+    });
+
+    cancelModeBtn.addEventListener('click', () => {
+      setMode(currentMode === 'cancel' ? 'view' : 'cancel');
     });
 
     dateInput.value = todayDefault();
     renderPlasiyers();
     renderProducts();
-    renderSummary();
+
+    if (activeRep && PLASIYERS.includes(activeRep)) {
+      switchToApp();
+    }
   </script>
 </body>
 </html>
