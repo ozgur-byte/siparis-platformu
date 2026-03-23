@@ -488,9 +488,33 @@
     const stockPanel = document.getElementById('stockPanel');
     const oldPanel = document.getElementById('oldPanel');
 
-    let orders = JSON.parse(localStorage.getItem('siparis_orders') || '[]');
-    let depoStock = JSON.parse(localStorage.getItem('siparis_depo_stock') || '{}');
-    let gazipasaOld = JSON.parse(localStorage.getItem('siparis_gazipasa_old') || '{}');
+    function safeReadArray(key) {
+      try {
+        const raw = localStorage.getItem(key);
+        if (!raw) return [];
+        const parsed = JSON.parse(raw);
+        return Array.isArray(parsed) ? parsed : [];
+      } catch (e) {
+        console.error(`${key} okunamadı:`, e);
+        return [];
+      }
+    }
+
+    function safeReadObject(key) {
+      try {
+        const raw = localStorage.getItem(key);
+        if (!raw) return {};
+        const parsed = JSON.parse(raw);
+        return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : {};
+      } catch (e) {
+        console.error(`${key} okunamadı:`, e);
+        return {};
+      }
+    }
+
+    let orders = [];
+    let depoStock = {};
+    let gazipasaOld = {};
 
     function todayDefault() {
       const now = new Date();
@@ -498,6 +522,12 @@
       const m = String(now.getMonth() + 1).padStart(2, '0');
       const d = String(now.getDate()).padStart(2, '0');
       return `${y}-${m}-${d}`;
+    }
+
+    function refreshLocalData() {
+      orders = safeReadArray('siparis_orders');
+      depoStock = safeReadObject('siparis_depo_stock');
+      gazipasaOld = safeReadObject('siparis_gazipasa_old');
     }
 
     function dateOrders() {
@@ -519,7 +549,7 @@
         PLASIYERS.forEach(rep => repValues[rep] = 0);
 
         selectedOrders.forEach(order => {
-          const value = Number(order.items[product.id] || 0);
+          const value = Number(order.items?.[product.id] || 0);
           repValues[order.rep] = (repValues[order.rep] || 0) + value;
         });
 
@@ -875,9 +905,11 @@
     }
 
     reportDate.addEventListener('change', () => {
-      orders = JSON.parse(localStorage.getItem('siparis_orders') || '[]');
+      refreshLocalData();
       renderStats();
       renderSummary();
+      renderStockInputs();
+      renderOldInputs();
     });
 
     exportBtn.addEventListener('click', exportExcel);
@@ -888,11 +920,14 @@
       btn.addEventListener('click', () => switchTab(btn.dataset.tab));
     });
 
-    reportDate.value = todayDefault();
-    renderStats();
-    renderSummary();
-    renderStockInputs();
-    renderOldInputs();
+    window.addEventListener('DOMContentLoaded', () => {
+      reportDate.value = todayDefault();
+      refreshLocalData();
+      renderStats();
+      renderSummary();
+      renderStockInputs();
+      renderOldInputs();
+    });
   </script>
 </body>
 </html>
