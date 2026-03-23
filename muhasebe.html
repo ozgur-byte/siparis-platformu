@@ -427,7 +427,8 @@
     </div>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/exceljs/dist/exceljs.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js"></script>
   <script>
     const PRODUCTS = [
       { id: '19179-1', code: '19179', name: 'DÖKME AÇIK' },
@@ -672,28 +673,189 @@
       renderSummary();
     }
 
-    function exportExcel() {
+    async function exportExcel() {
       const rows = buildSummaryRows().filter(row => row.total > 0);
-      const exportRows = rows.map(row => ({
-        Kod: row.code,
-        Ürün: row.name,
-        Metin: row.repValues['Metin İlhan'] || '',
-        Çetin: row.repValues['Çetin Orhan Manavgat'] || '',
-        Orhan: row.repValues['Orhan Sezen'] || '',
-        Merkez: row.repValues['Merkez'] || '',
-        Gazipaşa: row.repValues['Gazipaşa'] || '',
-        Toplam: row.total,
-        'Depo Stoğu': row.depo || '',
-        'Gazipaşa Old': row.old || ''
-      }));
 
-      const workbook = XLSX.utils.book_new();
-      const summarySheet = XLSX.utils.json_to_sheet(exportRows.length ? exportRows : [{ Bilgi: 'Bu tarihte sipariş yok' }]);
-      XLSX.utils.book_append_sheet(workbook, summarySheet, 'Muhasebe Ozeti');
-      XLSX.writeFile(workbook, `muhasebe-ozeti-${reportDate.value}.xlsx`);
-    }
+      const workbook = new ExcelJS.Workbook();
+      const sheet = workbook.addWorksheet('Muhasebe Özeti', {
+        views: [{ state: 'frozen', ySplit: 4, xSplit: 2 }]
+      });
 
-    function switchTab(name) {
+      sheet.columns = [
+        { key: 'code', width: 14 },
+        { key: 'name', width: 36 },
+        { key: 'metin', width: 12 },
+        { key: 'cetin', width: 12 },
+        { key: 'orhan', width: 12 },
+        { key: 'merkez', width: 12 },
+        { key: 'gazipasa', width: 12 },
+        { key: 'toplam', width: 12 },
+        { key: 'depo', width: 14 },
+        { key: 'old', width: 14 }
+      ];
+
+      sheet.mergeCells('A1:J1');
+      sheet.getCell('A1').value = 'SİPARİŞ ÖZETİ';
+      sheet.getCell('A1').font = { bold: true, size: 16, color: { argb: 'FFFFFFFF' } };
+      sheet.getCell('A1').alignment = { horizontal: 'center', vertical: 'middle' };
+      sheet.getCell('A1').fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: '0F766E' }
+      };
+      sheet.getRow(1).height = 26;
+
+      sheet.mergeCells('A2:J2');
+      sheet.getCell('A2').value = `Rapor Tarihi: ${reportDate.value}`;
+      sheet.getCell('A2').font = { bold: true, color: { argb: '1F2937' } };
+      sheet.getCell('A2').alignment = { horizontal: 'left', vertical: 'middle' };
+      sheet.getCell('A2').fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: 'E6F4F1' }
+      };
+
+      sheet.mergeCells('A3:J3');
+      const enteredInfo = getEnteredAndMissingReps();
+      sheet.getCell('A3').value = enteredInfo.enteredReps.length === PLASIYERS.length
+        ? 'Durum: Siparişler hazır'
+        : `Durum: ${enteredInfo.enteredReps.length}/${PLASIYERS.length} plasiyer giriş yaptı`;
+      sheet.getCell('A3').font = { bold: true, color: { argb: '92400E' } };
+      sheet.getCell('A3').fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: 'FFF7ED' }
+      };
+
+      const headerRow = sheet.getRow(4);
+      headerRow.values = ['Kod', 'Ürün', 'Metin', 'Çetin', 'Orhan', 'Merkez', 'Gazipaşa', 'Toplam', 'Depo Stoğu', 'Gazipaşa Old'];
+      headerRow.height = 24;
+
+      headerRow.eachCell((cell, colNumber) => {
+        cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+        cell.alignment = { horizontal: 'center', vertical: 'middle' };
+        cell.border = {
+          top: { style: 'thin', color: { argb: 'CBD5E1' } },
+          left: { style: 'thin', color: { argb: 'CBD5E1' } },
+          bottom: { style: 'thin', color: { argb: 'CBD5E1' } },
+          right: { style: 'thin', color: { argb: 'CBD5E1' } }
+        };
+
+        let color = '1F2937';
+        if (colNumber <= 2) color = '334155';
+        else if (colNumber >= 3 && colNumber <= 7) color = '1D4ED8';
+        else if (colNumber === 8) color = '0F766E';
+        else if (colNumber >= 9) color = 'D97706';
+
+        cell.fill = {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: color }
+        };
+      });
+
+      rows.forEach((row) => {
+        const excelRow = sheet.addRow([
+          row.code,
+          row.name,
+          row.repValues['Metin İlhan'] || '',
+          row.repValues['Çetin Orhan Manavgat'] || '',
+          row.repValues['Orhan Sezen'] || '',
+          row.repValues['Merkez'] || '',
+          row.repValues['Gazipaşa'] || '',
+          row.total,
+          row.depo || '',
+          row.old || ''
+        ]);
+
+        excelRow.eachCell((cell, colNumber) => {
+          cell.border = {
+            top: { style: 'thin', color: { argb: 'E2E8F0' } },
+            left: { style: 'thin', color: { argb: 'E2E8F0' } },
+            bottom: { style: 'thin', color: { argb: 'E2E8F0' } },
+            right: { style: 'thin', color: { argb: 'E2E8F0' } }
+          };
+          cell.alignment = {
+            vertical: 'middle',
+            horizontal: colNumber >= 3 ? 'right' : 'left'
+          };
+
+          if (colNumber === 1 || colNumber === 2) {
+            cell.fill = {
+              type: 'pattern',
+              pattern: 'solid',
+              fgColor: { argb: 'F8FAFC' }
+            };
+          }
+
+          if (colNumber === 8) {
+            cell.font = { bold: true, color: { argb: '0F172A' } };
+            cell.fill = {
+              type: 'pattern',
+              pattern: 'solid',
+              fgColor: { argb: 'DCFCE7' }
+            };
+          }
+
+          if (colNumber === 9 || colNumber === 10) {
+            cell.fill = {
+              type: 'pattern',
+              pattern: 'solid',
+              fgColor: { argb: 'FFF7ED' }
+            };
+          }
+        });
+      });
+
+      const lastDataRow = sheet.rowCount + 1;
+      const totals = {
+        metin: rows.reduce((sum, row) => sum + Number(row.repValues['Metin İlhan'] || 0), 0),
+        cetin: rows.reduce((sum, row) => sum + Number(row.repValues['Çetin Orhan Manavgat'] || 0), 0),
+        orhan: rows.reduce((sum, row) => sum + Number(row.repValues['Orhan Sezen'] || 0), 0),
+        merkez: rows.reduce((sum, row) => sum + Number(row.repValues['Merkez'] || 0), 0),
+        gazipasa: rows.reduce((sum, row) => sum + Number(row.repValues['Gazipaşa'] || 0), 0),
+        toplam: rows.reduce((sum, row) => sum + Number(row.total || 0), 0),
+        depo: rows.reduce((sum, row) => sum + Number(row.depo || 0), 0),
+        old: rows.reduce((sum, row) => sum + Number(row.old || 0), 0)
+      };
+
+      const totalRow = sheet.addRow([
+        '',
+        'GENEL TOPLAM',
+        totals.metin,
+        totals.cetin,
+        totals.orhan,
+        totals.merkez,
+        totals.gazipasa,
+        totals.toplam,
+        totals.depo || '',
+        totals.old || ''
+      ]);
+
+      totalRow.eachCell((cell, colNumber) => {
+        cell.font = { bold: true, color: { argb: '0F172A' } };
+        cell.border = {
+          top: { style: 'medium', color: { argb: '94A3B8' } },
+          left: { style: 'thin', color: { argb: 'CBD5E1' } },
+          bottom: { style: 'thin', color: { argb: 'CBD5E1' } },
+          right: { style: 'thin', color: { argb: 'CBD5E1' } }
+        };
+        cell.alignment = { vertical: 'middle', horizontal: colNumber >= 3 ? 'right' : 'left' };
+        cell.fill = {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: colNumber === 8 ? 'BBF7D0' : 'E2E8F0' }
+        };
+      });
+
+      sheet.autoFilter = {
+        from: 'A4',
+        to: 'J4'
+      };
+
+      const buffer = await workbook.xlsx.writeBuffer();
+      saveAs(new Blob([buffer], {
+        type: 'application/vnd.openxmlformats-officedocument(name) {
       tabButtons.forEach(btn => btn.classList.toggle('active', btn.dataset.tab === name));
       summaryPanel.classList.toggle('active', name === 'summary');
       stockPanel.classList.toggle('active', name === 'stock');
