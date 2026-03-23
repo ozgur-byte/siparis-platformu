@@ -11,8 +11,6 @@
       --text: #1f2937;
       --muted: #6b7280;
       --line: #dbe3ea;
-      --primary: #0f766e;
-      --primary-dark: #115e59;
       --soft: #eef6f5;
       --danger: #b91c1c;
       --warning: #92400e;
@@ -20,6 +18,7 @@
     }
 
     * { box-sizing: border-box; }
+
     body {
       margin: 0;
       font-family: Arial, Helvetica, sans-serif;
@@ -68,11 +67,12 @@
       display: inline-block;
       padding: 10px 14px;
       border-radius: 999px;
-      background: var(--soft);
-      color: var(--primary-dark);
+      background: #eef6f5;
+      color: #115e59;
       font-weight: 700;
       font-size: 14px;
       margin-top: 8px;
+      border: 2px solid #cde7e4;
     }
 
     .top-actions {
@@ -103,15 +103,25 @@
       margin-bottom: 8px;
     }
 
-    select, input[type="date"], input[type="number"] {
+    select,
+    input[type="date"],
+    input[type="number"] {
       width: 100%;
-      border: 1px solid var(--line);
+      border: 2px solid #cfd8e3;
       border-radius: 18px;
-      background: #fff;
+      background: #f8fafc;
       padding: 14px 16px;
       font-size: 18px;
       min-height: 56px;
       outline: none;
+      box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.05);
+    }
+
+    select:focus,
+    input[type="date"]:focus,
+    input[type="number"]:focus {
+      border-color: #94a3b8;
+      background: #ffffff;
     }
 
     input[type="number"] {
@@ -153,9 +163,6 @@
     }
 
     .btn {
-      border: 0;
-      background: var(--primary);
-      color: #fff;
       width: 100%;
       min-height: 58px;
       border-radius: 18px;
@@ -163,23 +170,70 @@
       font-weight: 700;
       cursor: pointer;
       padding: 12px 14px;
+      color: #fff;
+      border: 3px solid transparent;
+      transition: 0.15s ease;
     }
 
-    .btn:hover { background: var(--primary-dark); }
-
-    .btn.secondary {
-      background: #1f2937;
-      min-height: 52px;
-      font-size: 16px;
+    .btn:hover {
+      filter: brightness(0.96);
     }
 
-    .btn.light {
-      background: #e5e7eb;
-      color: #111827;
+    .btn:active {
+      transform: translateY(1px);
     }
 
-    .btn.danger {
-      background: var(--danger);
+    .btn-submit {
+      background: #0f766e;
+      border-color: #115e59;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.12);
+    }
+
+    .btn-orders {
+      background: #1d4ed8;
+      border-color: #1e40af;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.12);
+    }
+
+    .btn-edit {
+      background: #d97706;
+      border-color: #b45309;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.12);
+    }
+
+    .btn-cancel {
+      background: #b91c1c;
+      border-color: #991b1b;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.12);
+    }
+
+    .btn-change {
+      background: #475569;
+      border-color: #334155;
+      color: #fff;
+      min-height: 46px;
+      max-width: 220px;
+      font-size: 15px;
+    }
+
+    .btn-order-card-edit {
+      background: #f59e0b;
+      border-color: #b45309;
+      color: #fff;
+      min-height: 48px;
+      font-size: 15px;
+    }
+
+    .btn-order-card-cancel {
+      background: #dc2626;
+      border-color: #991b1b;
+      color: #fff;
+      min-height: 48px;
+      font-size: 15px;
+    }
+
+    .btn-active {
+      outline: 3px solid rgba(15, 23, 42, 0.12);
     }
 
     .actions {
@@ -191,17 +245,19 @@
 
     .message {
       margin-top: 14px;
-      background: var(--soft);
+      background: #eef6f5;
       border-radius: 18px;
       padding: 14px;
       font-size: 15px;
       line-height: 1.5;
+      border: 1px solid #d8ebe8;
     }
 
     .message.warning {
       background: var(--warning-bg);
       color: var(--warning);
       font-weight: 700;
+      border: 1px solid #fed7aa;
     }
 
     .section {
@@ -269,31 +325,40 @@
       display: block;
     }
 
-    .hidden { display: none; }
+    .hidden {
+      display: none;
+    }
 
     @media (max-width: 560px) {
       .container {
         padding: 10px;
       }
+
       .card, .header {
         border-radius: 18px;
       }
+
       .product-row {
         grid-template-columns: 1fr 110px;
         padding: 12px;
       }
+
       .product-name {
         font-size: 16px;
       }
+
       input[type="number"] {
         font-size: 22px;
       }
+
       .order-actions {
         grid-template-columns: 1fr;
       }
+
       .brand img {
         height: 38px;
       }
+
       h1 {
         font-size: 24px;
       }
@@ -314,9 +379,11 @@
         <div class="title">Plasiyer Seçimi</div>
         <div class="field">
           <label for="repLoginSelect">Plasiyer Adı</label>
-          <select id="repLoginSelect"></select>
+          <select id="repLoginSelect">
+            <option value="">Plasiyer seçin</option>
+          </select>
         </div>
-        <button class="btn" id="enterSystemBtn">Devam Et</button>
+        <button class="btn btn-submit" id="enterSystemBtn">Devam Et</button>
       </div>
     </div>
 
@@ -328,7 +395,7 @@
         </div>
         <div class="rep-badge" id="activeRepBadge"></div>
         <div class="top-actions">
-          <button class="btn light" id="changeRepBtn" style="max-width:220px; min-height:46px;">Başka plasiyer seç</button>
+          <button class="btn btn-change" id="changeRepBtn">Başka plasiyer seç</button>
         </div>
       </div>
 
@@ -343,13 +410,13 @@
         <div class="products" id="products"></div>
 
         <div style="margin-top: 14px;">
-          <button class="btn" id="submitBtn">Gönder</button>
+          <button class="btn btn-submit" id="submitBtn">Gönder</button>
         </div>
 
         <div class="actions">
-          <button class="btn secondary" id="myOrdersBtn">Siparişlerim</button>
-          <button class="btn light" id="editModeBtn">Siparişime eklemek/çıkarma yapmak istiyorum</button>
-          <button class="btn danger" id="cancelModeBtn">Siparişimi iptal etmek istiyorum</button>
+          <button class="btn btn-orders" id="myOrdersBtn">Siparişlerim</button>
+          <button class="btn btn-edit" id="editModeBtn">Siparişime eklemek/çıkarma yapmak istiyorum</button>
+          <button class="btn btn-cancel" id="cancelModeBtn">Siparişimi iptal etmek istiyorum</button>
         </div>
 
         <div class="message hidden" id="messageBox"></div>
@@ -398,7 +465,7 @@
       { id: '2812310-1', code: '2812310', name: 'AL-TAV KALÇALI BUT' },
       { id: '2812303-1', code: '2812303', name: 'AL-TAV BUT İNCİK' },
       { id: '2812306-1', code: '2812306', name: 'AL-TAV DÖNERLİK BONFİLE' },
-      { id: '19027-1', code: '19027', name: 'ŞENPİLİÇ ÇATAL BUT' },
+      { id: '19027-1', code: '19027', name: 'ŞENPİLİÇ ÇATAL BUT' }
     ];
 
     const HIGH_LIMIT_EXCLUDED_CODES = ['19179', '19173'];
@@ -421,7 +488,7 @@
     const ordersList = document.getElementById('ordersList');
 
     let orders = JSON.parse(localStorage.getItem('siparis_orders') || '[]');
-    let activeRep = localStorage.getItem('siparis_active_rep') || '';
+    let activeRep = '';
     let showOrders = false;
     let currentMode = 'view';
     let editingOrderId = null;
@@ -436,7 +503,9 @@
 
     function showMessage(text, type = 'normal') {
       messageBox.classList.remove('hidden', 'warning');
-      if (type === 'warning') messageBox.classList.add('warning');
+      if (type === 'warning') {
+        messageBox.classList.add('warning');
+      }
       messageBox.textContent = text;
     }
 
@@ -447,10 +516,10 @@
     }
 
     function renderPlasiyers() {
-      repLoginSelect.innerHTML = PLASIYERS.map(name => `<option value="${name}">${name}</option>`).join('');
-      if (activeRep && PLASIYERS.includes(activeRep)) {
-        repLoginSelect.value = activeRep;
-      }
+      repLoginSelect.innerHTML =
+        '<option value="">Plasiyer seçin</option>' +
+        PLASIYERS.map(name => `<option value="${name}">${name}</option>`).join('');
+      repLoginSelect.value = '';
     }
 
     function renderProducts() {
@@ -486,17 +555,15 @@
     }
 
     function clearInputs() {
-      getInputs().forEach(input => input.value = '');
+      getInputs().forEach(input => {
+        input.value = '';
+      });
       editingOrderId = null;
       submitBtn.textContent = 'Gönder';
     }
 
     function saveOrders() {
       localStorage.setItem('siparis_orders', JSON.stringify(orders));
-    }
-
-    function saveActiveRep() {
-      localStorage.setItem('siparis_active_rep', activeRep);
     }
 
     function generateOrderId() {
@@ -539,11 +606,13 @@
       ordersList.innerHTML = repOrders.map(order => {
         const lines = formatOrderItems(order.items);
         const total = Object.values(order.items).reduce((sum, value) => sum + Number(value || 0), 0);
+
         const editButton = currentMode === 'edit'
-          ? `<button class="btn light" onclick="startEditOrder('${order.id}')">Bu siparişi düzenle</button>`
+          ? `<button class="btn btn-order-card-edit" onclick="startEditOrder('${order.id}')">Bu siparişi düzenle</button>`
           : '';
+
         const cancelButton = currentMode === 'cancel'
-          ? `<button class="btn danger" onclick="deleteOrder('${order.id}')">Bu siparişi iptal et</button>`
+          ? `<button class="btn btn-order-card-cancel" onclick="deleteOrder('${order.id}')">Bu siparişi iptal et</button>`
           : '';
 
         return `
@@ -570,12 +639,15 @@
           const product = getProductById(id);
           if (!product) return null;
           if (HIGH_LIMIT_EXCLUDED_CODES.includes(product.code)) return null;
-          if (Number(qty) > 50) return `${product.name} ürünündeki sipariş ${qty} koli. Bu miktar ortalamanın üzerinde.`;
+          if (Number(qty) > 50) {
+            return `${product.name} ürünündeki sipariş ${qty} koli. Bu miktar ortalamanın üzerinde.`;
+          }
           return null;
         })
         .filter(Boolean);
 
       if (!warnings.length) return true;
+
       return window.confirm(`${warnings.join('\n')}\n\nEmin misin?`);
     }
 
@@ -585,7 +657,6 @@
 
     function switchToApp() {
       if (!activeRep) return;
-      saveActiveRep();
       setActiveRepUI();
       loginScreen.classList.remove('active');
       appScreen.classList.add('active');
@@ -595,11 +666,25 @@
     function switchToLogin() {
       appScreen.classList.remove('active');
       loginScreen.classList.add('active');
+      activeRep = '';
+      repLoginSelect.value = '';
       clearInputs();
       clearMessage();
       showOrders = false;
       currentMode = 'view';
+      updateModeButtons();
       myOrdersSection.classList.add('hidden');
+    }
+
+    function updateModeButtons() {
+      editModeBtn.classList.remove('btn-active');
+      cancelModeBtn.classList.remove('btn-active');
+
+      if (currentMode === 'edit') {
+        editModeBtn.classList.add('btn-active');
+      } else if (currentMode === 'cancel') {
+        cancelModeBtn.classList.add('btn-active');
+      }
     }
 
     function submitOrder() {
@@ -624,7 +709,11 @@
       }
 
       if (editingOrderId) {
-        orders = orders.map(order => order.id === editingOrderId ? { ...order, rep: activeRep, date, items: cleanItems } : order);
+        orders = orders.map(order =>
+          order.id === editingOrderId
+            ? { ...order, rep: activeRep, date, items: cleanItems }
+            : order
+        );
         saveOrders();
         clearInputs();
         renderOrdersList();
@@ -632,7 +721,13 @@
         return;
       }
 
-      orders.push({ id: generateOrderId(), rep: activeRep, date, items: cleanItems });
+      orders.push({
+        id: generateOrderId(),
+        rep: activeRep,
+        date,
+        items: cleanItems
+      });
+
       saveOrders();
       clearInputs();
       renderOrdersList();
@@ -645,9 +740,11 @@
 
       dateInput.value = order.date;
       clearMessage();
+
       getInputs().forEach(input => {
         input.value = order.items[input.dataset.id] ?? '';
       });
+
       editingOrderId = order.id;
       submitBtn.textContent = 'Güncellemeyi Kaydet';
       showMessage('Sipariş formu düzenleme için yüklendi. İstediğin ekleme/çıkarma değişikliğini yapıp tekrar kaydet.');
@@ -657,38 +754,36 @@
     function deleteOrder(orderId) {
       const order = orders.find(item => item.id === orderId && item.rep === activeRep);
       if (!order) return;
+
       const total = Object.values(order.items).reduce((sum, value) => sum + Number(value || 0), 0);
       const confirmed = window.confirm(`${order.date} tarihli ${total} kolilik siparişi iptal etmek istiyor musun?`);
       if (!confirmed) return;
 
       orders = orders.filter(item => item.id !== orderId);
       saveOrders();
-      if (editingOrderId === orderId) clearInputs();
+
+      if (editingOrderId === orderId) {
+        clearInputs();
+      }
+
       renderOrdersList();
       showMessage('Sipariş iptal edildi.');
     }
 
     function setMode(mode) {
       currentMode = mode;
-      editModeBtn.classList.remove('secondary');
-      cancelModeBtn.classList.remove('secondary');
-      editModeBtn.classList.add('light');
-      cancelModeBtn.classList.add('danger');
 
       if (mode === 'edit') {
-        editModeBtn.classList.remove('light');
-        editModeBtn.classList.add('secondary');
         showOrders = true;
         showMessage('Düzenlemek istediğin siparişi aşağıdan seç.', 'warning');
       } else if (mode === 'cancel') {
-        cancelModeBtn.classList.remove('danger');
-        cancelModeBtn.classList.add('secondary');
         showOrders = true;
         showMessage('İptal etmek istediğin siparişi aşağıdan seç.', 'warning');
       } else {
         clearMessage();
       }
 
+      updateModeButtons();
       renderOrdersList();
     }
 
@@ -696,6 +791,11 @@
     window.deleteOrder = deleteOrder;
 
     enterSystemBtn.addEventListener('click', () => {
+      if (!repLoginSelect.value) {
+        alert('Lütfen plasiyer seçin.');
+        return;
+      }
+
       activeRep = repLoginSelect.value;
       switchToApp();
     });
@@ -703,8 +803,6 @@
     changeRepBtn.addEventListener('click', () => {
       const confirmed = window.confirm('Başka bir plasiyer seçmek istiyor musun?');
       if (!confirmed) return;
-      activeRep = '';
-      localStorage.removeItem('siparis_active_rep');
       switchToLogin();
     });
 
@@ -727,10 +825,7 @@
     dateInput.value = todayDefault();
     renderPlasiyers();
     renderProducts();
-
-    if (activeRep && PLASIYERS.includes(activeRep)) {
-      switchToApp();
-    }
+    updateModeButtons();
   </script>
 </body>
 </html>
