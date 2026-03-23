@@ -27,7 +27,7 @@
     }
 
     .container {
-      max-width: 820px;
+      max-width: 860px;
       margin: 0 auto;
       padding: 12px;
     }
@@ -216,10 +216,10 @@
       font-size: 15px;
     }
 
-    .btn-disabled {
-      opacity: 0.55;
-      cursor: not-allowed;
-      filter: grayscale(0.15);
+    .btn-secondary {
+      background: #64748b;
+      border-color: #475569;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.12);
     }
 
     .btn-active {
@@ -248,6 +248,13 @@
       color: var(--warning);
       font-weight: 700;
       border: 1px solid #fed7aa;
+    }
+
+    .message.success {
+      background: #ecfdf5;
+      color: #065f46;
+      font-weight: 700;
+      border: 1px solid #bbf7d0;
     }
 
     .section {
@@ -300,6 +307,60 @@
       line-height: 1.55;
     }
 
+    .order-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 12px;
+    }
+
+    .mini-btn {
+      border: none;
+      cursor: pointer;
+      min-height: 38px;
+      padding: 8px 14px;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 800;
+      color: #fff;
+    }
+
+    .mini-edit {
+      background: #d97706;
+    }
+
+    .mini-cancel {
+      background: #b91c1c;
+    }
+
+    .mode-badge {
+      display: inline-block;
+      margin-top: 10px;
+      padding: 9px 12px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 800;
+      border: 1px solid transparent;
+    }
+
+    .mode-normal {
+      background: #eef6f5;
+      color: #115e59;
+      border-color: #cde7e4;
+    }
+
+    .mode-edit {
+      background: #fff7ed;
+      color: #9a3412;
+      border-color: #fed7aa;
+    }
+
+    .mode-cancel {
+      background: #fef2f2;
+      color: #991b1b;
+      border-color: #fecaca;
+    }
+
     .screen {
       display: none;
     }
@@ -341,6 +402,10 @@
       h1 {
         font-size: 24px;
       }
+
+      .order-head {
+        flex-direction: column;
+      }
     }
   </style>
 </head>
@@ -373,6 +438,7 @@
           <h1>Sipariş Giriş Ekranı - Özgür</h1>
         </div>
         <div class="rep-badge" id="activeRepBadge"></div>
+        <div id="modeBadge" class="mode-badge mode-normal">Mod: Yeni sipariş</div>
         <div class="top-actions">
           <button class="btn btn-change" id="changeRepBtn">Başka plasiyer seç</button>
         </div>
@@ -388,14 +454,15 @@
 
         <div class="products" id="products"></div>
 
-        <div style="margin-top: 14px;">
+        <div style="margin-top: 14px; display:grid; gap:10px;">
           <button class="btn btn-submit" id="submitBtn">Gönder</button>
+          <button class="btn btn-secondary hidden" id="resetModeBtn">Yeni Sipariş Moduna Dön</button>
         </div>
 
         <div class="actions">
           <button class="btn btn-orders" id="myOrdersBtn">Siparişlerim</button>
-          <button class="btn btn-edit btn-disabled" id="editModeBtn" type="button">Siparişime eklemek/çıkarma yapmak istiyorum</button>
-          <button class="btn btn-cancel btn-disabled" id="cancelModeBtn" type="button">Siparişimi iptal etmek istiyorum</button>
+          <button class="btn btn-edit" id="editModeBtn" type="button">Siparişime ekleme/çıkarma yapmak istiyorum</button>
+          <button class="btn btn-cancel" id="cancelModeBtn" type="button">Siparişimi tamamen iptal etmek istiyorum</button>
         </div>
 
         <div class="message hidden" id="messageBox"></div>
@@ -457,10 +524,12 @@
     const repLoginSelect = document.getElementById('repLoginSelect');
     const enterSystemBtn = document.getElementById('enterSystemBtn');
     const activeRepBadge = document.getElementById('activeRepBadge');
+    const modeBadge = document.getElementById('modeBadge');
     const changeRepBtn = document.getElementById('changeRepBtn');
     const dateInput = document.getElementById('dateInput');
     const productsWrap = document.getElementById('products');
     const submitBtn = document.getElementById('submitBtn');
+    const resetModeBtn = document.getElementById('resetModeBtn');
     const myOrdersBtn = document.getElementById('myOrdersBtn');
     const editModeBtn = document.getElementById('editModeBtn');
     const cancelModeBtn = document.getElementById('cancelModeBtn');
@@ -471,6 +540,8 @@
     let orders = [];
     let activeRep = '';
     let showOrders = false;
+    let mode = 'create';
+    let editingOrderId = null;
 
     function todayDefault() {
       const now = new Date();
@@ -480,17 +551,51 @@
       return `${y}-${m}-${d}`;
     }
 
-    function showMessage(text, type = 'normal') {
-      messageBox.classList.remove('hidden', 'warning');
-      if (type === 'warning') {
-        messageBox.classList.add('warning');
+    function parseTrDateTime(value) {
+      if (!value) return 0;
+      const [datePart, timePart = '00:00'] = String(value).split(' ');
+      if (!datePart) return 0;
+
+      if (datePart.includes('-')) {
+        return new Date(`${datePart}T${timePart}`).getTime() || 0;
       }
+
+      const parts = datePart.split('.');
+      if (parts.length !== 3) return 0;
+
+      const [dd, mm, yyyy] = parts;
+      return new Date(`${yyyy}-${mm}-${dd}T${timePart}`).getTime() || 0;
+    }
+
+    function displayOrderDate(order) {
+      return order.date || '-';
+    }
+
+    function extractIsoDate(value) {
+      if (!value) return todayDefault();
+      const dateOnly = String(value).split(' ')[0];
+
+      if (dateOnly.includes('-')) {
+        return dateOnly.slice(0, 10);
+      }
+
+      const parts = dateOnly.split('.');
+      if (parts.length !== 3) return todayDefault();
+
+      const [dd, mm, yyyy] = parts;
+      return `${yyyy}-${mm.padStart(2, '0')}-${dd.padStart(2, '0')}`;
+    }
+
+    function showMessage(text, type = 'normal') {
+      messageBox.classList.remove('hidden', 'warning', 'success');
+      if (type === 'warning') messageBox.classList.add('warning');
+      if (type === 'success') messageBox.classList.add('success');
       messageBox.textContent = text;
     }
 
     function clearMessage() {
       messageBox.classList.add('hidden');
-      messageBox.classList.remove('warning');
+      messageBox.classList.remove('warning', 'success');
       messageBox.textContent = '';
     }
 
@@ -539,6 +644,20 @@
       });
     }
 
+    function fillInputsFromItems(items) {
+      clearInputs();
+
+      items.forEach(item => {
+        const product = PRODUCTS.find(p => p.name === item.urun);
+        if (!product) return;
+
+        const input = productsWrap.querySelector(`input[data-id="${product.id}"]`);
+        if (input) {
+          input.value = Number(item.miktar || 0);
+        }
+      });
+    }
+
     function getProductById(id) {
       return PRODUCTS.find(p => p.id === id);
     }
@@ -572,6 +691,8 @@
             kayitNo: row.kayitNo,
             rep: row.plasiyer,
             date: row.tarihSaat || '',
+            aciklama: row.aciklama || '',
+            durum: row.durum || 'AKTIF',
             items: []
           });
         }
@@ -582,13 +703,11 @@
         });
       });
 
-      return Array.from(map.values()).sort((a, b) => {
-        return new Date(b.date) - new Date(a.date);
-      });
+      return Array.from(map.values()).sort((a, b) => parseTrDateTime(b.date) - parseTrDateTime(a.date));
     }
 
-    async function fetchOrdersFromSheet() {
-      const res = await fetch(`${APPS_SCRIPT_URL}?action=list`);
+    async function fetchOrdersFromSheet(includeCancelled = false) {
+      const res = await fetch(`${APPS_SCRIPT_URL}?action=list&includeCancelled=${includeCancelled ? 'true' : 'false'}`);
       const data = await res.json();
 
       if (!data.ok) {
@@ -601,7 +720,7 @@
 
     async function refreshOrdersList() {
       try {
-        await fetchOrdersFromSheet();
+        await fetchOrdersFromSheet(false);
         renderOrdersList();
       } catch (err) {
         showMessage('Sipariş listesi alınamadı: ' + err.message, 'warning');
@@ -636,13 +755,20 @@
             <div class="order-head">
               <div>
                 <div class="order-title">${order.rep}</div>
-                <div class="order-sub">Tarih: ${order.date}</div>
+                <div class="order-sub">Tarih/Saat: ${displayOrderDate(order)}</div>
+                <div class="order-sub">Kayıt No: ${order.kayitNo}</div>
               </div>
               <div class="order-total">${total} koli</div>
             </div>
             <ul class="order-items">
               ${lines.map(line => `<li>${line}</li>`).join('')}
             </ul>
+            ${(mode === 'edit' || mode === 'cancel') ? `
+              <div class="order-actions">
+                ${mode === 'edit' ? `<button class="mini-btn mini-edit" onclick="startEditOrder('${order.kayitNo}')">Bu siparişi düzenle</button>` : ''}
+                ${mode === 'cancel' ? `<button class="mini-btn mini-cancel" onclick="cancelOrderById('${order.kayitNo}')">Bu siparişi iptal et</button>` : ''}
+              </div>
+            ` : ''}
           </div>
         `;
       }).join('');
@@ -666,19 +792,19 @@
       return window.confirm(`${warnings.join('\n')}\n\nEmin misin?`);
     }
 
-    async function sendOrderToSheet(orderData) {
+    async function sendOrderRequest(payload) {
       const res = await fetch(APPS_SCRIPT_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'text/plain;charset=utf-8'
         },
-        body: JSON.stringify(orderData)
+        body: JSON.stringify(payload)
       });
 
       const data = await res.json();
 
       if (!data.ok) {
-        throw new Error(data.error || 'Kayıt yapılamadı');
+        throw new Error(data.error || 'İşlem yapılamadı');
       }
 
       return data;
@@ -688,12 +814,53 @@
       activeRepBadge.textContent = `Giriş yapan plasiyer: ${activeRep}`;
     }
 
+    function updateModeUI() {
+      submitBtn.textContent = editingOrderId ? 'Siparişi Güncelle' : 'Gönder';
+      resetModeBtn.classList.toggle('hidden', !editingOrderId && mode === 'create');
+
+      editModeBtn.classList.toggle('btn-active', mode === 'edit');
+      cancelModeBtn.classList.toggle('btn-active', mode === 'cancel');
+
+      modeBadge.className = 'mode-badge';
+
+      if (editingOrderId) {
+        modeBadge.classList.add('mode-edit');
+        modeBadge.textContent = `Mod: Düzenleme (${editingOrderId})`;
+        return;
+      }
+
+      if (mode === 'edit') {
+        modeBadge.classList.add('mode-edit');
+        modeBadge.textContent = 'Mod: Düzenlemek için sipariş seç';
+        return;
+      }
+
+      if (mode === 'cancel') {
+        modeBadge.classList.add('mode-cancel');
+        modeBadge.textContent = 'Mod: İptal etmek için sipariş seç';
+        return;
+      }
+
+      modeBadge.classList.add('mode-normal');
+      modeBadge.textContent = 'Mod: Yeni sipariş';
+    }
+
+    function resetToCreateMode() {
+      mode = 'create';
+      editingOrderId = null;
+      clearInputs();
+      dateInput.value = todayDefault();
+      updateModeUI();
+      renderOrdersList();
+    }
+
     async function switchToApp() {
       if (!activeRep) return;
       setActiveRepUI();
       loginScreen.classList.remove('active');
       appScreen.classList.add('active');
       clearMessage();
+      resetToCreateMode();
       if (showOrders) {
         await refreshOrdersList();
       }
@@ -709,6 +876,7 @@
       showOrders = false;
       myOrdersSection.classList.add('hidden');
       ordersList.innerHTML = '';
+      resetToCreateMode();
     }
 
     async function submitOrder() {
@@ -722,17 +890,20 @@
 
       const highQtyConfirmed = checkHighQuantityWarnings(cleanItems);
       if (!highQtyConfirmed) {
-        showMessage('Yüksek koli uyarısı nedeniyle gönderim iptal edildi.', 'warning');
+        showMessage('Yüksek koli uyarısı nedeniyle işlem iptal edildi.', 'warning');
         return;
       }
 
-      const confirmed = window.confirm(`Toplam sipariş koli miktarı: ${total} koli. Onaylıyor musun?`);
+      const actionText = editingOrderId ? 'Bu sipariş güncellenecek.' : 'Yeni sipariş gönderilecek.';
+      const confirmed = window.confirm(`${actionText}\nToplam sipariş koli miktarı: ${total} koli.\nOnaylıyor musun?`);
       if (!confirmed) {
-        showMessage('Sipariş gönderimi iptal edildi.', 'warning');
+        showMessage('İşlem iptal edildi.', 'warning');
         return;
       }
 
       const payload = {
+        action: editingOrderId ? 'updateOrder' : 'create',
+        kayitNo: editingOrderId || undefined,
         plasiyer: activeRep,
         aciklama: date,
         cihaz: navigator.userAgent,
@@ -741,22 +912,68 @@
       };
 
       submitBtn.disabled = true;
-      submitBtn.textContent = 'Gönderiliyor...';
+      submitBtn.textContent = editingOrderId ? 'Güncelleniyor...' : 'Gönderiliyor...';
 
       try {
-        await sendOrderToSheet(payload);
-        clearInputs();
-        showMessage('Sipariş kaydedildi.');
+        await sendOrderRequest(payload);
+        showMessage(editingOrderId ? 'Sipariş güncellendi.' : 'Sipariş kaydedildi.', 'success');
+        resetToCreateMode();
         if (showOrders) {
           await refreshOrdersList();
         }
       } catch (err) {
-        showMessage('Kayıt hatası: ' + err.message, 'warning');
+        showMessage('İşlem hatası: ' + err.message, 'warning');
       } finally {
         submitBtn.disabled = false;
-        submitBtn.textContent = 'Gönder';
+        updateModeUI();
       }
     }
+
+    window.startEditOrder = async function(kayitNo) {
+      try {
+        await fetchOrdersFromSheet(false);
+        const order = orders.find(x => x.kayitNo === kayitNo && x.rep === activeRep);
+
+        if (!order) {
+          showMessage('Düzenlenecek sipariş bulunamadı.', 'warning');
+          return;
+        }
+
+        editingOrderId = kayitNo;
+        mode = 'edit';
+        dateInput.value = extractIsoDate(order.aciklama || order.date);
+        fillInputsFromItems(order.items);
+        updateModeUI();
+        showMessage('Sipariş düzenleme modunda. Miktarları değiştirip "Siparişi Güncelle" butonuna bas.', 'success');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } catch (err) {
+        showMessage('Sipariş düzenleme hatası: ' + err.message, 'warning');
+      }
+    };
+
+    window.cancelOrderById = async function(kayitNo) {
+      const confirmed = window.confirm('Bu sipariş tamamen iptal edilecek. Emin misin?');
+      if (!confirmed) return;
+
+      try {
+        await sendOrderRequest({
+          action: 'cancelOrder',
+          kayitNo
+        });
+
+        showMessage('Sipariş tamamen iptal edildi.', 'success');
+
+        if (editingOrderId === kayitNo) {
+          resetToCreateMode();
+        }
+
+        if (showOrders) {
+          await refreshOrdersList();
+        }
+      } catch (err) {
+        showMessage('İptal hatası: ' + err.message, 'warning');
+      }
+    };
 
     enterSystemBtn.addEventListener('click', async () => {
       if (!repLoginSelect.value) {
@@ -776,6 +993,11 @@
 
     submitBtn.addEventListener('click', submitOrder);
 
+    resetModeBtn.addEventListener('click', () => {
+      resetToCreateMode();
+      showMessage('Yeni sipariş moduna dönüldü.', 'success');
+    });
+
     myOrdersBtn.addEventListener('click', async () => {
       showOrders = !showOrders;
       clearMessage();
@@ -787,17 +1009,39 @@
       }
     });
 
-    editModeBtn.addEventListener('click', () => {
-      showMessage('Düzenleme özelliği ikinci aşamada açılacak. Şu an sistem sadece yeni kayıt gönderiyor.', 'warning');
+    editModeBtn.addEventListener('click', async () => {
+      mode = mode === 'edit' && !editingOrderId ? 'create' : 'edit';
+      if (mode === 'edit') {
+        showOrders = true;
+        await refreshOrdersList();
+        showMessage('Düzenlemek istediğin siparişte "Bu siparişi düzenle" butonuna bas.', 'success');
+      } else {
+        resetToCreateMode();
+        showMessage('Yeni sipariş moduna dönüldü.', 'success');
+      }
+      updateModeUI();
     });
 
-    cancelModeBtn.addEventListener('click', () => {
-      showMessage('İptal özelliği ikinci aşamada açılacak. Şu an sistem sadece yeni kayıt gönderiyor.', 'warning');
+    cancelModeBtn.addEventListener('click', async () => {
+      if (editingOrderId) {
+        resetToCreateMode();
+      }
+
+      mode = mode === 'cancel' ? 'create' : 'cancel';
+      if (mode === 'cancel') {
+        showOrders = true;
+        await refreshOrdersList();
+        showMessage('İptal etmek istediğin siparişte "Bu siparişi iptal et" butonuna bas.', 'warning');
+      } else {
+        showMessage('Yeni sipariş moduna dönüldü.', 'success');
+      }
+      updateModeUI();
     });
 
     renderPlasiyers();
     renderProducts();
     dateInput.value = todayDefault();
+    updateModeUI();
   </script>
 </body>
 </html>
