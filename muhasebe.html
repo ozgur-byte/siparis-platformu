@@ -1,0 +1,724 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Muhasebe Ekranı - Özgür</title>
+  <style>
+    :root {
+      --bg: #f4f6f8;
+      --card: #ffffff;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --line: #dbe3ea;
+      --soft: #eef6f5;
+      --teal: #0f766e;
+      --teal-dark: #115e59;
+      --blue: #1d4ed8;
+      --blue-dark: #1e40af;
+      --success-bg: #ecfdf5;
+      --success-text: #166534;
+      --warning-bg: #fff7ed;
+      --warning-text: #92400e;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    .container {
+      max-width: 1440px;
+      margin: 0 auto;
+      padding: 12px;
+    }
+
+    .header, .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+    }
+
+    .header {
+      padding: 18px;
+      margin-bottom: 14px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .brand img {
+      height: 44px;
+      width: auto;
+      object-fit: contain;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 28px;
+      line-height: 1.2;
+    }
+
+    .subline {
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .card {
+      padding: 18px;
+      margin-bottom: 14px;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .stat {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      padding: 16px;
+    }
+
+    .stat-label {
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    .stat-value {
+      font-size: 30px;
+      font-weight: 800;
+    }
+
+    .status-box {
+      display: inline-block;
+      margin-top: 10px;
+      padding: 10px 14px;
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: 14px;
+      border: 1px solid transparent;
+    }
+
+    .status-ready {
+      background: var(--success-bg);
+      color: var(--success-text);
+      border-color: #bbf7d0;
+    }
+
+    .status-waiting {
+      background: var(--warning-bg);
+      color: var(--warning-text);
+      border-color: #fed7aa;
+    }
+
+    .rep-status-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .rep-box {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      padding: 16px;
+    }
+
+    .rep-box-title {
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+
+    .rep-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .rep-tag {
+      display: inline-flex;
+      align-items: center;
+      padding: 8px 12px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 700;
+      border: 1px solid transparent;
+    }
+
+    .rep-tag.entered {
+      background: var(--success-bg);
+      color: var(--success-text);
+      border-color: #bbf7d0;
+    }
+
+    .rep-tag.missing {
+      background: var(--warning-bg);
+      color: var(--warning-text);
+      border-color: #fed7aa;
+    }
+
+    .topbar {
+      display: grid;
+      grid-template-columns: 240px 1fr auto;
+      gap: 12px;
+      align-items: end;
+      margin-bottom: 14px;
+    }
+
+    label {
+      display: block;
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    input[type="date"], input[type="number"] {
+      width: 100%;
+      border: 2px solid #cfd8e3;
+      border-radius: 16px;
+      background: #f8fafc;
+      padding: 12px 14px;
+      font-size: 16px;
+      min-height: 50px;
+      outline: none;
+    }
+
+    input[type="number"] {
+      text-align: right;
+      font-weight: 700;
+    }
+
+    .btn {
+      min-height: 50px;
+      border-radius: 16px;
+      padding: 12px 16px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      color: #fff;
+      border: 3px solid transparent;
+      transition: 0.15s ease;
+    }
+
+    .btn:hover { filter: brightness(0.96); }
+    .btn:active { transform: translateY(1px); }
+
+    .btn-export {
+      background: var(--teal);
+      border-color: var(--teal-dark);
+    }
+
+    .btn-save {
+      background: var(--blue);
+      border-color: var(--blue-dark);
+    }
+
+    .tabbar {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 14px;
+    }
+
+    .tab-btn {
+      min-height: 46px;
+      padding: 10px 16px;
+      border-radius: 14px;
+      border: 2px solid #d5deea;
+      background: #fff;
+      color: var(--text);
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .tab-btn.active {
+      background: #eef6f5;
+      color: var(--teal-dark);
+      border-color: #b6ddd8;
+    }
+
+    .panel { display: none; }
+    .panel.active { display: block; }
+
+    .table-wrap {
+      overflow: auto;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: #fff;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 1180px;
+    }
+
+    thead {
+      background: #eef2f7;
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+
+    th, td {
+      padding: 12px 12px;
+      border-bottom: 1px solid var(--line);
+      font-size: 14px;
+      text-align: left;
+      vertical-align: middle;
+      white-space: nowrap;
+    }
+
+    th.num, td.num {
+      text-align: right;
+    }
+
+    td.total-col, th.total-col {
+      background: #f8fafc;
+      font-weight: 800;
+    }
+
+    .panel-title {
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+
+    .message {
+      margin-top: 12px;
+      background: #eef6f5;
+      border: 1px solid #d7ece9;
+      border-radius: 16px;
+      padding: 12px 14px;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .empty {
+      padding: 18px;
+      border: 1px dashed #cfd8e3;
+      border-radius: 16px;
+      color: var(--muted);
+      background: #fff;
+      font-size: 14px;
+    }
+
+    .savebar {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 12px;
+    }
+
+    @media (max-width: 900px) {
+      .stats {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .rep-status-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .topbar {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 560px) {
+      .container { padding: 10px; }
+      .header, .card, .stat, .rep-box { border-radius: 18px; }
+      h1 { font-size: 24px; }
+      .brand img { height: 38px; }
+      .stats { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="brand">
+        <img src="logo.png" alt="AL-TAV Logo" onerror="this.style.display='none'" />
+        <h1>Muhasebe Ekranı - Özgür</h1>
+      </div>
+      <div class="subline">Sipariş özeti, depo stoğu ve Gazipaşa Old girişleri tek yerde.</div>
+    </div>
+
+    <div class="stats" id="statsRow"></div>
+    <div class="rep-status-grid" id="repStatusGrid"></div>
+
+    <div class="card">
+      <div class="topbar">
+        <div>
+          <label for="reportDate">Rapor Tarihi</label>
+          <input id="reportDate" type="date" />
+        </div>
+        <div id="statusArea"></div>
+        <div>
+          <button class="btn btn-export" id="exportBtn">Excel'e İndir</button>
+        </div>
+      </div>
+
+      <div class="tabbar">
+        <button class="tab-btn active" data-tab="summary">Sipariş Özeti</button>
+        <button class="tab-btn" data-tab="stock">Depo Stoğu</button>
+        <button class="tab-btn" data-tab="old">Gazipaşa Old</button>
+      </div>
+
+      <div id="summaryPanel" class="panel active">
+        <div class="panel-title">Sipariş Özeti</div>
+        <div id="summaryContent"></div>
+      </div>
+
+      <div id="stockPanel" class="panel">
+        <div class="panel-title">Depo Stoğu Girişi</div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Kod</th>
+                <th>Ürün</th>
+                <th class="num">Depo Stoğu</th>
+              </tr>
+            </thead>
+            <tbody id="stockTableBody"></tbody>
+          </table>
+        </div>
+        <div class="savebar">
+          <button class="btn btn-save" id="saveStockBtn">Depo Stoğunu Kaydet</button>
+        </div>
+        <div id="stockMessage"></div>
+      </div>
+
+      <div id="oldPanel" class="panel">
+        <div class="panel-title">Gazipaşa Old Girişi</div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Kod</th>
+                <th>Ürün</th>
+                <th class="num">Gazipaşa Old</th>
+              </tr>
+            </thead>
+            <tbody id="oldTableBody"></tbody>
+          </table>
+        </div>
+        <div class="savebar">
+          <button class="btn btn-save" id="saveOldBtn">Gazipaşa Old Kaydet</button>
+        </div>
+        <div id="oldMessage"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script>
+    const PRODUCTS = [
+      { id: '19179-1', code: '19179', name: 'DÖKME AÇIK' },
+      { id: '19173-1', code: '19173', name: 'POŞETLİ' },
+      { id: '33787-1', code: '33787', name: 'MAKSİ' },
+      { id: '25338-1', code: '25338', name: 'POŞETLİ 14' },
+      { id: '19354-1', code: '19354', name: 'DÖKME BAGET' },
+      { id: '19352-1', code: '19352', name: 'DÖKME KALÇALI BUT' },
+      { id: '19355-1', code: '19355', name: 'DÖKME BUT İNCİK' },
+      { id: '4924-1', code: '4924', name: 'DÖKME KEMİKSİZ BUT' },
+      { id: '33836-1', code: '33836', name: 'DÖKME DERİLİ LOKUMSUZ BONFİLE' },
+      { id: '19362-1', code: '19362', name: 'DÖKME BONFİLE' },
+      { id: '19360-1', code: '19360', name: 'DÖKME KOVAN GÖĞÜS' },
+      { id: '19361-1', code: '19361', name: 'DÖKME MUZ GÖĞÜS' },
+      { id: '19367-1', code: '19367', name: 'DÖKME ÇORBALIK' },
+      { id: '19351-1', code: '19351', name: 'DÖKME IZGARALIK KANAT' },
+      { id: '19349-1', code: '19349', name: 'DÖKME SPESİYAL KANAT' },
+      { id: '19348-1', code: '19348', name: 'DÖKME UCLU KANAT' },
+      { id: '19101-1', code: '19101', name: 'TABAKLI KALÇALI BUT' },
+      { id: '19103-1', code: '19103', name: 'TABAKLI BAGET' },
+      { id: '19130-1', code: '19130', name: 'TABAKLI BUT İNCİK' },
+      { id: '19105-1', code: '19105', name: 'TABAKLI IZGARA TAVA' },
+      { id: '36137-1', code: '36137', name: 'TABAKLI SPS KANAT' },
+      { id: '33798-1', code: '33798', name: 'TABAKLI JUMBO KANAT' },
+      { id: '36138-1', code: '36138', name: 'TABAKLI IZGARA KANAT' },
+      { id: '19110-1', code: '19110', name: 'TABAKLI BONFİLE' },
+      { id: '25339-1', code: '25339', name: 'TABAKLI CİĞER' },
+      { id: '19320-1', code: '19320', name: 'TABAKLI TAŞLIK' },
+      { id: '31343-1', code: '31343', name: 'TABAKLI YÜREK' },
+      { id: '2812318-1', code: '2812318', name: 'AL-TAV UÇLU KANAT' },
+      { id: '2812302-1', code: '2812302', name: 'AL-TAV BONFİLE' },
+      { id: '2812313-1', code: '2812313', name: 'AL-TAV KEMİKSİZ BUT' },
+      { id: '2812305-1', code: '2812305', name: 'AL-TAV ÇORBALIK' },
+      { id: '2812310-1', code: '2812310', name: 'AL-TAV KALÇALI BUT' },
+      { id: '2812303-1', code: '2812303', name: 'AL-TAV BUT İNCİK' },
+      { id: '2812306-1', code: '2812306', name: 'AL-TAV DÖNERLİK BONFİLE' },
+      { id: '19027-1', code: '19027', name: 'ŞENPİLİÇ ÇATAL BUT' }
+    ];
+
+    const PLASIYERS = ['Metin İlhan', 'Çetin Orhan Manavgat', 'Orhan Sezen', 'Merkez', 'Gazipaşa'];
+
+    const reportDate = document.getElementById('reportDate');
+    const statsRow = document.getElementById('statsRow');
+    const repStatusGrid = document.getElementById('repStatusGrid');
+    const statusArea = document.getElementById('statusArea');
+    const summaryContent = document.getElementById('summaryContent');
+    const stockTableBody = document.getElementById('stockTableBody');
+    const oldTableBody = document.getElementById('oldTableBody');
+    const stockMessage = document.getElementById('stockMessage');
+    const oldMessage = document.getElementById('oldMessage');
+    const exportBtn = document.getElementById('exportBtn');
+    const saveStockBtn = document.getElementById('saveStockBtn');
+    const saveOldBtn = document.getElementById('saveOldBtn');
+    const tabButtons = document.querySelectorAll('.tab-btn');
+    const summaryPanel = document.getElementById('summaryPanel');
+    const stockPanel = document.getElementById('stockPanel');
+    const oldPanel = document.getElementById('oldPanel');
+
+    let orders = JSON.parse(localStorage.getItem('siparis_orders') || '[]');
+    let depoStock = JSON.parse(localStorage.getItem('siparis_depo_stock') || '{}');
+    let gazipasaOld = JSON.parse(localStorage.getItem('siparis_gazipasa_old') || '{}');
+
+    function todayDefault() {
+      const now = new Date();
+      const y = now.getFullYear();
+      const m = String(now.getMonth() + 1).padStart(2, '0');
+      const d = String(now.getDate()).padStart(2, '0');
+      return `${y}-${m}-${d}`;
+    }
+
+    function dateOrders() {
+      return orders.filter(order => order.date === reportDate.value);
+    }
+
+    function getEnteredAndMissingReps() {
+      const selectedOrders = dateOrders();
+      const enteredReps = [...new Set(selectedOrders.map(order => order.rep))].filter(Boolean);
+      const missingReps = PLASIYERS.filter(rep => !enteredReps.includes(rep));
+      return { enteredReps, missingReps };
+    }
+
+    function buildSummaryRows() {
+      const selectedOrders = dateOrders();
+      return PRODUCTS.map(product => {
+        const repValues = {};
+        PLASIYERS.forEach(rep => repValues[rep] = 0);
+
+        selectedOrders.forEach(order => {
+          const value = Number(order.items[product.id] || 0);
+          repValues[order.rep] = (repValues[order.rep] || 0) + value;
+        });
+
+        const total = PLASIYERS.reduce((sum, rep) => sum + Number(repValues[rep] || 0), 0);
+
+        return {
+          code: product.code,
+          name: product.name,
+          productId: product.id,
+          repValues,
+          total,
+          depo: Number(depoStock[product.id] || 0),
+          old: Number(gazipasaOld[product.id] || 0)
+        };
+      });
+    }
+
+    function renderStats() {
+      const { enteredReps, missingReps } = getEnteredAndMissingReps();
+      const enteredCount = enteredReps.length;
+      const remainingCount = missingReps.length;
+      const visibleRows = buildSummaryRows().filter(row => row.total > 0);
+      const totalBoxes = visibleRows.reduce((sum, row) => sum + row.total, 0);
+
+      statsRow.innerHTML = `
+        <div class="stat">
+          <div class="stat-label">Girilen Sipariş Sayısı</div>
+          <div class="stat-value">${enteredCount}/${PLASIYERS.length}</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">Kalan Sipariş Sayısı</div>
+          <div class="stat-value">${remainingCount}</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">Rapordaki Ürün Sayısı</div>
+          <div class="stat-value">${visibleRows.length}</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">Toplam Koli</div>
+          <div class="stat-value">${totalBoxes}</div>
+        </div>
+      `;
+
+      repStatusGrid.innerHTML = `
+        <div class="rep-box">
+          <div class="rep-box-title">Giriş Yapan Plasiyerler</div>
+          <div class="rep-tags">
+            ${enteredReps.length ? enteredReps.map(rep => `<span class="rep-tag entered">${rep}</span>`).join('') : '<span class="rep-tag missing">Henüz giriş yok</span>'}
+          </div>
+        </div>
+        <div class="rep-box">
+          <div class="rep-box-title">Giriş Yapmayan Plasiyerler</div>
+          <div class="rep-tags">
+            ${missingReps.length ? missingReps.map(rep => `<span class="rep-tag missing">${rep}</span>`).join('') : '<span class="rep-tag entered">Eksik yok</span>'}
+          </div>
+        </div>
+      `;
+
+      statusArea.innerHTML = enteredCount === PLASIYERS.length
+        ? '<div class="status-box status-ready">Siparişler hazır</div>'
+        : `<div class="status-box status-waiting">Henüz hazır değil. ${remainingCount} plasiyer eksik.</div>`;
+    }
+
+    function renderSummary() {
+      const rows = buildSummaryRows().filter(row => row.total > 0);
+
+      if (!rows.length) {
+        summaryContent.innerHTML = '<div class="empty">Bu tarihte toplamı 0\'dan büyük sipariş görünmüyor.</div>';
+        return;
+      }
+
+      summaryContent.innerHTML = `
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Kod</th>
+                <th>Ürün</th>
+                <th class="num">Metin</th>
+                <th class="num">Çetin</th>
+                <th class="num">Orhan</th>
+                <th class="num">Merkez</th>
+                <th class="num">Gazipaşa</th>
+                <th class="num total-col">Toplam</th>
+                <th class="num">Depo Stoğu</th>
+                <th class="num">Gazipaşa Old</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${rows.map(row => `
+                <tr>
+                  <td>${row.code}</td>
+                  <td>${row.name}</td>
+                  <td class="num">${row.repValues['Metin İlhan'] || ''}</td>
+                  <td class="num">${row.repValues['Çetin Orhan Manavgat'] || ''}</td>
+                  <td class="num">${row.repValues['Orhan Sezen'] || ''}</td>
+                  <td class="num">${row.repValues['Merkez'] || ''}</td>
+                  <td class="num">${row.repValues['Gazipaşa'] || ''}</td>
+                  <td class="num total-col">${row.total}</td>
+                  <td class="num">${row.depo || ''}</td>
+                  <td class="num">${row.old || ''}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      `;
+    }
+
+    function renderStockInputs() {
+      stockTableBody.innerHTML = PRODUCTS.map(product => `
+        <tr>
+          <td>${product.code}</td>
+          <td>${product.name}</td>
+          <td class="num"><input type="number" min="0" data-stock-id="${product.id}" value="${depoStock[product.id] ?? ''}" /></td>
+        </tr>
+      `).join('');
+    }
+
+    function renderOldInputs() {
+      oldTableBody.innerHTML = PRODUCTS.map(product => `
+        <tr>
+          <td>${product.code}</td>
+          <td>${product.name}</td>
+          <td class="num"><input type="number" min="0" data-old-id="${product.id}" value="${gazipasaOld[product.id] ?? ''}" /></td>
+        </tr>
+      `).join('');
+    }
+
+    function saveStock() {
+      const inputs = document.querySelectorAll('[data-stock-id]');
+      const next = {};
+      inputs.forEach(input => {
+        const val = Number(input.value || 0);
+        if (val > 0) next[input.dataset.stockId] = val;
+      });
+      depoStock = next;
+      localStorage.setItem('siparis_depo_stock', JSON.stringify(depoStock));
+      stockMessage.innerHTML = '<div class="message">Depo stoğu kaydedildi.</div>';
+      renderSummary();
+    }
+
+    function saveOld() {
+      const inputs = document.querySelectorAll('[data-old-id]');
+      const next = {};
+      inputs.forEach(input => {
+        const val = Number(input.value || 0);
+        if (val > 0) next[input.dataset.oldId] = val;
+      });
+      gazipasaOld = next;
+      localStorage.setItem('siparis_gazipasa_old', JSON.stringify(gazipasaOld));
+      oldMessage.innerHTML = '<div class="message">Gazipaşa Old kaydedildi.</div>';
+      renderSummary();
+    }
+
+    function exportExcel() {
+      const rows = buildSummaryRows().filter(row => row.total > 0);
+      const exportRows = rows.map(row => ({
+        Kod: row.code,
+        Ürün: row.name,
+        Metin: row.repValues['Metin İlhan'] || '',
+        Çetin: row.repValues['Çetin Orhan Manavgat'] || '',
+        Orhan: row.repValues['Orhan Sezen'] || '',
+        Merkez: row.repValues['Merkez'] || '',
+        Gazipaşa: row.repValues['Gazipaşa'] || '',
+        Toplam: row.total,
+        'Depo Stoğu': row.depo || '',
+        'Gazipaşa Old': row.old || ''
+      }));
+
+      const workbook = XLSX.utils.book_new();
+      const summarySheet = XLSX.utils.json_to_sheet(exportRows.length ? exportRows : [{ Bilgi: 'Bu tarihte sipariş yok' }]);
+      XLSX.utils.book_append_sheet(workbook, summarySheet, 'Muhasebe Ozeti');
+      XLSX.writeFile(workbook, `muhasebe-ozeti-${reportDate.value}.xlsx`);
+    }
+
+    function switchTab(name) {
+      tabButtons.forEach(btn => btn.classList.toggle('active', btn.dataset.tab === name));
+      summaryPanel.classList.toggle('active', name === 'summary');
+      stockPanel.classList.toggle('active', name === 'stock');
+      oldPanel.classList.toggle('active', name === 'old');
+    }
+
+    reportDate.addEventListener('change', () => {
+      orders = JSON.parse(localStorage.getItem('siparis_orders') || '[]');
+      renderStats();
+      renderSummary();
+    });
+
+    exportBtn.addEventListener('click', exportExcel);
+    saveStockBtn.addEventListener('click', saveStock);
+    saveOldBtn.addEventListener('click', saveOld);
+
+    tabButtons.forEach(btn => {
+      btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+    });
+
+    reportDate.value = todayDefault();
+    renderStats();
+    renderSummary();
+    renderStockInputs();
+    renderOldInputs();
+  </script>
+</body>
+</html>
