@@ -475,7 +475,7 @@
     </div>
 
     <div class="footer-note">
-      Seçilen tarihe göre özet gösterilir. Excel çıktısı biçimlendirilmiş olarak indirilir.
+      Seçilen tarihe göre özet gösterilir. Excel çıktısında STOK + GELECEK - GZP_OLD = NET hesabı otomatik yapılır.
     </div>
   </div>
 
@@ -684,6 +684,7 @@
         "GAZİPAŞA": "",
         BOS: "",
         STOK: "",
+        GELECEK: "",
         GZP_OLD: ""
       }));
 
@@ -711,20 +712,28 @@
     }
 
     function buildExcelHtml(matrix, selectedDate) {
-      const rowsHtml = matrix.map(row => `
-        <tr>
-          <td style="border:1px solid #000; font-weight:700; background:#fff7cc; text-align:center;">${row.kod || ""}</td>
-          <td style="border:1px solid #000; font-weight:700; background:#fff7cc;">${row.ad || ""}</td>
-          <td style="border:1px solid #000; text-align:center; font-weight:700;">${row.ALANYA || ""}</td>
-          <td style="border:1px solid #000; text-align:center; font-weight:700;">${row.MANAVGAT || ""}</td>
-          <td style="border:1px solid #000; text-align:center; font-weight:700;">${row["YOL BOYU"] || ""}</td>
-          <td style="border:1px solid #000; text-align:center; font-weight:700;">${row.MERKEZ || ""}</td>
-          <td style="border:1px solid #000; text-align:center; font-weight:700;">${row["GAZİPAŞA"] || ""}</td>
-          <td style="border:none; background:#f2f2f2;"></td>
-          <td style="border:1px solid #000; text-align:center; font-weight:700; background:#fff7cc;">${row.STOK || ""}</td>
-          <td style="border:1px solid #000; text-align:center; font-weight:700; background:#fff7cc;">${row.GZP_OLD || ""}</td>
-        </tr>
-      `).join("");
+      const rowsHtml = matrix.map((row, index) => {
+        const excelRowNo = index + 4;
+
+        return `
+          <tr>
+            <td style="border:1px solid #000; font-weight:700; background:#fff7cc; text-align:center;">${row.kod || ""}</td>
+            <td style="border:1px solid #000; font-weight:700; background:#fff7cc;">${row.ad || ""}</td>
+            <td style="border:1px solid #000; text-align:center; font-weight:700;">${row.ALANYA || ""}</td>
+            <td style="border:1px solid #000; text-align:center; font-weight:700;">${row.MANAVGAT || ""}</td>
+            <td style="border:1px solid #000; text-align:center; font-weight:700;">${row["YOL BOYU"] || ""}</td>
+            <td style="border:1px solid #000; text-align:center; font-weight:700;">${row.MERKEZ || ""}</td>
+            <td style="border:1px solid #000; text-align:center; font-weight:700;">${row["GAZİPAŞA"] || ""}</td>
+            <td style="border:none; background:#f2f2f2;"></td>
+            <td style="border:1px solid #000; text-align:center; font-weight:700; background:#fff7cc;">${row.STOK || ""}</td>
+            <td style="border:1px solid #000; text-align:center; font-weight:700; background:#e0f2fe;">${row.GELECEK || ""}</td>
+            <td style="border:1px solid #000; text-align:center; font-weight:700; background:#fff7cc;">${row.GZP_OLD || ""}</td>
+            <td x:fmla="=I${excelRowNo}+J${excelRowNo}-K${excelRowNo}"
+                style="border:1px solid #000; text-align:center; font-weight:900; background:#dcfce7; color:#166534;">
+            </td>
+          </tr>
+        `;
+      }).join("");
 
       return `
         <html xmlns:o="urn:schemas-microsoft-com:office:office"
@@ -750,11 +759,11 @@
         <body>
           <table border="0" cellpadding="0" cellspacing="0" style="border-collapse:collapse; font-family:Arial, sans-serif; font-size:12pt;">
             <tr>
-              <td colspan="10" style="font-size:16pt; font-weight:700; padding:10px 6px; color:#1f2937;">
+              <td colspan="12" style="font-size:16pt; font-weight:700; padding:10px 6px; color:#1f2937;">
                 Sipariş Matrisi - ${selectedDate}
               </td>
             </tr>
-            <tr><td colspan="10" style="height:8px;"></td></tr>
+            <tr><td colspan="12" style="height:8px;"></td></tr>
             <tr>
               <td style="border:1px solid #000; background:#fff7cc; font-weight:700; text-align:center; width:90px;"></td>
               <td style="border:1px solid #000; background:#fff7cc; font-weight:700; width:330px;"></td>
@@ -765,7 +774,9 @@
               <td style="border:1px solid #000; background:#dbeafe; color:#1e3a8a; font-weight:900; text-align:center; width:110px;">GAZİPAŞA</td>
               <td style="background:#f2f2f2; width:40px;"></td>
               <td style="border:1px solid #000; background:#fef3c7; color:#92400e; font-weight:900; text-align:center; width:100px;">STOK</td>
+              <td style="border:1px solid #000; background:#dbeafe; color:#1e3a8a; font-weight:900; text-align:center; width:100px;">GELECEK</td>
               <td style="border:1px solid #000; background:#fef3c7; color:#92400e; font-weight:900; text-align:center; width:100px;">GZP_OLD</td>
+              <td style="border:1px solid #000; background:#dcfce7; color:#166534; font-weight:900; text-align:center; width:100px;">NET</td>
             </tr>
             ${rowsHtml}
           </table>
