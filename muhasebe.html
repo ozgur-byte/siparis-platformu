@@ -1,483 +1,371 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="tr">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Muhasebe Paneli</title>
-  <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+  <title>Muhasebe Ekranı</title>
   <style>
     :root{
-      --bg:#eef4ff;
+      --bg:#f4f7fb;
       --card:#ffffff;
-      --line:#d8e3f2;
-      --text:#1b2430;
+      --text:#1f2937;
       --muted:#6b7280;
-      --teal:#0f766e;
-      --teal-soft:#dff7f4;
-      --blue:#2563eb;
-      --blue-soft:#e8f0ff;
-      --orange:#f59e0b;
-      --orange-soft:#fff4db;
-      --green:#15803d;
-      --green-soft:#dcfce7;
-      --red:#dc2626;
-      --red-soft:#fee2e2;
-      --shadow:0 10px 30px rgba(19, 33, 68, .08);
-      --radius:20px;
+      --line:#d9e2ec;
+      --green:#0f766e;
+      --green-soft:#ecfdf5;
+      --red:#b91c1c;
+      --red-soft:#fef2f2;
+      --blue:#1d4ed8;
+      --blue-soft:#eff6ff;
+      --amber:#b45309;
+      --amber-soft:#fff7ed;
     }
 
     *{box-sizing:border-box}
+
     body{
       margin:0;
-      background:linear-gradient(180deg,#eff5ff 0%, #f8fbff 100%);
+      font-family:Arial, Helvetica, sans-serif;
+      background:var(--bg);
       color:var(--text);
-      font-family:Inter, Arial, Helvetica, sans-serif;
     }
 
-    .container{
-      max-width:1500px;
+    .wrap{
+      max-width:1200px;
       margin:0 auto;
-      padding:24px;
-    }
-
-    .topbar{
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      gap:16px;
-      margin-bottom:20px;
-      flex-wrap:wrap;
-    }
-
-    .title{
-      font-size:34px;
-      font-weight:900;
-      letter-spacing:-.7px;
-      margin:0;
-      color:#10213b;
-    }
-
-    .top-actions{
-      display:flex;
-      gap:10px;
-      flex-wrap:wrap;
-    }
-
-    button{
-      border:none;
-      border-radius:14px;
-      padding:12px 18px;
-      font-size:14px;
-      font-weight:800;
-      cursor:pointer;
-      transition:.18s ease;
-      box-shadow:var(--shadow);
-    }
-
-    button:hover{ transform:translateY(-1px); }
-
-    .btn-primary{
-      background:linear-gradient(135deg,#0f766e,#0f9a8f);
-      color:#fff;
-    }
-
-    .btn-secondary{
-      background:#ffffff;
-      color:#15314b;
-      border:1px solid #d9e6f3;
-    }
-
-    .grid{ display:grid; gap:16px; }
-
-    .stats{
-      grid-template-columns:repeat(4, minmax(0,1fr));
-      margin-bottom:18px;
+      padding:14px;
     }
 
     .card{
       background:var(--card);
       border:1px solid var(--line);
-      border-radius:var(--radius);
-      box-shadow:var(--shadow);
-      padding:18px;
+      border-radius:22px;
+      box-shadow:0 2px 10px rgba(15,23,42,.04);
+      padding:16px;
+      margin-bottom:14px;
     }
 
-    .stat{
-      min-height:118px;
-      display:flex;
-      flex-direction:column;
-      justify-content:center;
-      gap:10px;
-      position:relative;
-      overflow:hidden;
+    h1,h2,h3{
+      margin:0 0 12px 0;
+      line-height:1.2;
     }
 
-    .stat::after{
-      content:"";
-      position:absolute;
-      right:-10px;
-      top:-10px;
-      width:90px;
-      height:90px;
-      border-radius:50%;
-      opacity:.18;
-    }
+    h1{font-size:28px}
+    h2{font-size:22px}
+    h3{font-size:18px}
 
-    .stat.s1::after{background:#14b8a6}
-    .stat.s2::after{background:#3b82f6}
-    .stat.s3::after{background:#f59e0b}
-    .stat.s4::after{background:#8b5cf6}
-
-    .stat-label{
-      font-size:13px;
-      color:var(--muted);
-      font-weight:800;
-      text-transform:uppercase;
-      letter-spacing:.4px;
-    }
-
-    .stat-value{
-      font-size:34px;
-      font-weight:900;
-      letter-spacing:-1px;
-      color:#10213b;
-    }
-
-    .split{
-      display:grid;
-      grid-template-columns:1.1fr .9fr;
-      gap:16px;
-      margin-bottom:18px;
-    }
-
-    .section-head{
+    .topbar{
       display:flex;
       justify-content:space-between;
       align-items:center;
       gap:12px;
-      margin-bottom:14px;
       flex-wrap:wrap;
     }
 
-    .section-head h2{
-      margin:0;
-      font-size:20px;
-      font-weight:900;
-      color:#10213b;
+    .controls{
+      display:grid;
+      grid-template-columns:220px 180px 1fr;
+      gap:10px;
+      align-items:end;
     }
 
-    .section-note{
-      color:var(--muted);
+    label{
+      display:block;
       font-size:13px;
+      font-weight:700;
+      margin-bottom:6px;
+      color:var(--muted);
+    }
+
+    input, button{
+      width:100%;
+      min-height:48px;
+      border-radius:16px;
+      border:2px solid #d1d9e6;
+      padding:10px 14px;
+      font-size:16px;
+      background:#fff;
+    }
+
+    button{
+      cursor:pointer;
+      font-weight:700;
+      border:none;
+      color:#fff;
+      background:var(--blue);
+    }
+
+    button:hover{filter:brightness(.96)}
+    .btn-green{background:var(--green)}
+    .btn-blue{background:var(--blue)}
+
+    .grid-4{
+      display:grid;
+      grid-template-columns:repeat(4,1fr);
+      gap:12px;
+    }
+
+    .mini{
+      border-radius:18px;
+      padding:14px;
+      border:1px solid var(--line);
+    }
+
+    .mini .k{
+      font-size:13px;
+      color:var(--muted);
+      margin-bottom:6px;
       font-weight:700;
     }
 
-    .chips-wrap{
-      display:grid;
-      grid-template-columns:1fr 1fr;
-      gap:16px;
+    .mini .v{
+      font-size:28px;
+      font-weight:800;
     }
 
-    .chips-box{
-      border-radius:18px;
-      padding:16px;
-    }
-
-    .chips-box.active{ background:linear-gradient(180deg,#eefcf6,#f7fffb); border:1px solid #c7f0d8; }
-    .chips-box.inactive{ background:linear-gradient(180deg,#fff5f5,#fffafb); border:1px solid #ffd3d3; }
-
-    .chips-title{
-      font-size:14px;
-      font-weight:900;
-      margin-bottom:12px;
-    }
+    .mini.blue{background:var(--blue-soft)}
+    .mini.green{background:var(--green-soft)}
+    .mini.red{background:var(--red-soft)}
+    .mini.amber{background:var(--amber-soft)}
 
     .chips{
       display:flex;
       flex-wrap:wrap;
-      gap:10px;
+      gap:8px;
     }
 
     .chip{
       display:inline-flex;
       align-items:center;
-      padding:10px 14px;
+      padding:9px 12px;
       border-radius:999px;
       font-size:14px;
-      font-weight:800;
+      font-weight:700;
+      border:1px solid transparent;
     }
 
-    .chip.green{ background:var(--green-soft); color:var(--green); }
-    .chip.red{ background:var(--red-soft); color:var(--red); }
-
-    .filters{
-      display:flex;
-      gap:10px;
-      flex-wrap:wrap;
-      margin-bottom:14px;
+    .chip.green{
+      background:var(--green-soft);
+      color:var(--green);
+      border-color:#bbf7d0;
     }
 
-    .filters input,.filters select{
-      width:100%;
-      border:1px solid var(--line);
-      background:#fff;
-      border-radius:14px;
-      padding:12px 14px;
+    .chip.red{
+      background:var(--red-soft);
+      color:var(--red);
+      border-color:#fecaca;
+    }
+
+    .empty{
+      color:var(--muted);
       font-size:14px;
-      outline:none;
     }
-
-    .filters .input{ flex:1 1 280px; }
-    .filters .select{ width:220px; }
 
     .table-wrap{
       overflow:auto;
       border:1px solid var(--line);
       border-radius:18px;
-      background:#fff;
     }
 
     table{
       width:100%;
-      border-collapse:separate;
-      border-spacing:0;
-      min-width:980px;
-    }
-
-    thead th{
-      position:sticky;
-      top:0;
-      z-index:2;
-      background:linear-gradient(180deg,#0f766e 0%, #147d73 100%);
-      color:#fff;
-      font-size:13px;
-      font-weight:900;
-      padding:14px 12px;
-      border-right:1px solid rgba(255,255,255,.14);
-      text-align:center;
-      white-space:nowrap;
-    }
-
-    thead th:first-child{
-      position:sticky;
-      left:0;
-      z-index:4;
-      text-align:left;
-      min-width:320px;
-    }
-
-    tbody td, tfoot td{
-      padding:12px 10px;
-      border-bottom:1px solid #e7eef7;
-      border-right:1px solid #eef3f8;
-      text-align:center;
-      font-size:14px;
+      border-collapse:collapse;
       background:#fff;
     }
 
-    tbody tr:nth-child(even) td{ background:#fbfdff; }
-
-    tbody td:first-child, tfoot td:first-child{
-      position:sticky;
-      left:0;
-      z-index:1;
+    th, td{
+      padding:12px 10px;
+      border-bottom:1px solid #e8eef5;
       text-align:left;
-      font-weight:800;
-      color:#10213b;
-      min-width:320px;
-      background:inherit;
+      font-size:14px;
+      vertical-align:top;
     }
 
-    .qty{
-      display:inline-flex;
-      min-width:40px;
-      justify-content:center;
+    th{
+      background:#f8fafc;
+      color:#475569;
+      position:sticky;
+      top:0;
+      z-index:1;
+      font-size:13px;
+    }
+
+    tr:hover td{
+      background:#fafcff;
+    }
+
+    .muted{color:var(--muted)}
+
+    .section-title{
+      display:flex;
+      justify-content:space-between;
       align-items:center;
-      padding:6px 10px;
-      border-radius:999px;
-      background:var(--teal-soft);
-      color:var(--teal);
-      font-weight:900;
-      border:1px solid #bfeae4;
+      gap:10px;
+      margin-bottom:12px;
+      flex-wrap:wrap;
     }
 
-    .zero{
-      color:#cbd5e1;
-      font-weight:800;
-    }
-
-    tfoot td{
-      background:#eefaf8 !important;
-      font-weight:900;
-      color:#10213b;
-    }
-
-    .mini-grid{
-      display:grid;
-      grid-template-columns:1fr 1fr;
-      gap:16px;
-      margin-top:18px;
-    }
-
-    .mini-table{
-      width:100%;
-      min-width:unset;
-    }
-
-    .mini-table th{
-      position:static;
-      background:#11243f;
-      color:#fff;
-    }
-
-    .mini-table td:first-child,
-    .mini-table th:first-child{
-      position:static;
-      min-width:unset;
-    }
-
-    .muted-empty{
-      text-align:center;
-      color:var(--muted);
-      padding:22px;
+    .loading{
+      padding:14px;
+      border-radius:16px;
+      background:#eff6ff;
+      color:#1d4ed8;
       font-weight:700;
+      border:1px solid #bfdbfe;
     }
 
-    @media (max-width:1100px){
-      .stats{grid-template-columns:repeat(2, minmax(0,1fr))}
-      .split,.mini-grid,.chips-wrap{grid-template-columns:1fr}
+    .error{
+      padding:14px;
+      border-radius:16px;
+      background:#fef2f2;
+      color:#b91c1c;
+      font-weight:700;
+      border:1px solid #fecaca;
     }
 
-    @media (max-width:640px){
-      .stats{grid-template-columns:1fr}
-      .container{padding:14px}
-      .title{font-size:26px}
+    @media (max-width: 900px){
+      .grid-4{
+        grid-template-columns:repeat(2,1fr);
+      }
+      .controls{
+        grid-template-columns:1fr;
+      }
+    }
+
+    @media (max-width: 600px){
+      .grid-4{
+        grid-template-columns:1fr;
+      }
+      h1{font-size:24px}
+      .mini .v{font-size:24px}
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <div class="topbar">
-      <h1 class="title">Muhasebe Paneli</h1>
-      <div class="top-actions">
-        <button class="btn-primary" onclick="loadData()">Verileri Yenile</button>
-        <button class="btn-secondary" onclick="exportExcel()">Excel'e İndir</button>
-      </div>
-    </div>
-
-    <div class="grid stats">
-      <div class="card stat s1">
-        <div class="stat-label">Toplam Kayıt</div>
-        <div class="stat-value" id="statTotalOrders">0</div>
-      </div>
-      <div class="card stat s2">
-        <div class="stat-label">Toplam Plasiyer</div>
-        <div class="stat-value" id="statTotalSales">0</div>
-      </div>
-      <div class="card stat s3">
-        <div class="stat-label">Giriş Yapan</div>
-        <div class="stat-value" id="statActiveSales">0</div>
-      </div>
-      <div class="card stat s4">
-        <div class="stat-label">Toplam Ürün Miktarı</div>
-        <div class="stat-value" id="statTotalItems">0</div>
-      </div>
-    </div>
-
-    <div class="split">
-      <div class="card">
-        <div class="section-head">
-          <h2>Plasiyer Durumu</h2>
-          <div class="section-note" id="statusInfo">-</div>
-        </div>
-
-        <div class="chips-wrap">
-          <div class="chips-box active">
-            <div class="chips-title">Giriş Yapanlar</div>
-            <div class="chips" id="activeSalesList"></div>
-          </div>
-
-          <div class="chips-box inactive">
-            <div class="chips-title">Giriş Yapmayanlar</div>
-            <div class="chips" id="inactiveSalesList"></div>
-          </div>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="section-head">
-          <h2>Özet</h2>
-          <div class="section-note">Plasiyer toplamları</div>
-        </div>
-
-        <div class="table-wrap">
-          <table class="mini-table">
-            <thead>
-              <tr>
-                <th>Plasiyer</th>
-                <th>Toplam</th>
-              </tr>
-            </thead>
-            <tbody id="salesSummaryBody"></tbody>
-          </table>
+  <div class="wrap">
+    <div class="card">
+      <div class="topbar">
+        <div>
+          <h1>Muhasebe Ekranı</h1>
+          <div class="muted">Google Sheets bağlantılı canlı sipariş özeti</div>
         </div>
       </div>
     </div>
 
     <div class="card">
-      <div class="section-head">
-        <h2>Ürün Bazlı Sipariş Matrisi</h2>
-        <div class="section-note">Satırlar ürün, sütunlar plasiyer</div>
-      </div>
-
-      <div class="filters">
-        <div class="input">
-          <input type="text" id="searchInput" placeholder="Ürün ara..." />
+      <div class="controls">
+        <div>
+          <label for="dateFilter">Tarih</label>
+          <input type="date" id="dateFilter" />
         </div>
-        <div class="select">
-          <select id="sortSelect">
-            <option value="custom">Verilen sıraya göre</option>
-            <option value="total-desc">Toplama göre büyükten küçüğe</option>
-            <option value="total-asc">Toplama göre küçükten büyüğe</option>
-          </select>
+        <div>
+          <label>&nbsp;</label>
+          <button class="btn-green" id="refreshBtn">Verileri Getir</button>
+        </div>
+        <div id="statusBox" class="loading">Hazır.</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="section-title">
+        <h2>Genel Durum</h2>
+      </div>
+      <div class="grid-4">
+        <div class="mini blue">
+          <div class="k">Toplam Kayıt</div>
+          <div class="v" id="totalRows">0</div>
+        </div>
+        <div class="mini green">
+          <div class="k">Giriş Yapan Plasiyer</div>
+          <div class="v" id="enteredCount">0</div>
+        </div>
+        <div class="mini red">
+          <div class="k">Giriş Yapmayan Plasiyer</div>
+          <div class="v" id="notEnteredCount">0</div>
+        </div>
+        <div class="mini amber">
+          <div class="k">Toplam Koli</div>
+          <div class="v" id="totalQty">0</div>
         </div>
       </div>
+    </div>
 
+    <div class="card">
+      <div class="section-title">
+        <h2>Giriş Yapanlar</h2>
+      </div>
+      <div class="chips" id="girisYapanlar"></div>
+    </div>
+
+    <div class="card">
+      <div class="section-title">
+        <h2>Giriş Yapmayanlar</h2>
+      </div>
+      <div class="chips" id="girisYapmayanlar"></div>
+    </div>
+
+    <div class="card">
+      <div class="section-title">
+        <h2>Plasiyer Bazlı Özet</h2>
+      </div>
       <div class="table-wrap">
         <table>
-          <thead id="matrixHead"></thead>
-          <tbody id="matrixBody"></tbody>
-          <tfoot id="matrixFoot"></tfoot>
+          <thead>
+            <tr>
+              <th>Plasiyer</th>
+              <th>Ürün Çeşidi</th>
+              <th>Toplam Koli</th>
+              <th>Son Kayıt</th>
+            </tr>
+          </thead>
+          <tbody id="repSummaryBody"></tbody>
         </table>
       </div>
     </div>
 
-    <div class="mini-grid">
-      <div class="card">
-        <div class="section-head">
-          <h2>Kayıt Özeti</h2>
-          <div class="section-note">Son sipariş satırları</div>
-        </div>
+    <div class="card">
+      <div class="section-title">
+        <h2>Ürün Toplamları</h2>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Sıra</th>
+              <th>Ürün</th>
+              <th>Toplam Koli</th>
+            </tr>
+          </thead>
+          <tbody id="productSummaryBody"></tbody>
+        </table>
+      </div>
+    </div>
 
-        <div class="table-wrap">
-          <table class="mini-table">
-            <thead>
-              <tr>
-                <th>Plasiyer</th>
-                <th>Kayıt ID</th>
-                <th>Kalem</th>
-                <th>Tarih</th>
-              </tr>
-            </thead>
-            <tbody id="recordSummaryBody"></tbody>
-          </table>
-        </div>
+    <div class="card">
+      <div class="section-title">
+        <h2>Detay Kayıtlar</h2>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Tarih Saat</th>
+              <th>Plasiyer</th>
+              <th>Ürün</th>
+              <th>Miktar</th>
+              <th>Açıklama</th>
+            </tr>
+          </thead>
+          <tbody id="detailBody"></tbody>
+        </table>
       </div>
     </div>
   </div>
 
   <script>
-    const TUM_PLASIYERLER = [
+    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyzKq7cejCei26si70SuLBtYTvcRIxr25geu6H2CQmIm0Jtn1EnhxaB4CHmdFOZElgqsA/exec";
+
+    const PLASIYERLER = [
       "Metin İlhan",
       "Çetin Orhan Manavgat",
       "Orhan Sezen",
@@ -485,95 +373,75 @@
       "Gazipaşa"
     ];
 
-    const STORAGE_KEY = "siparis_orders";
-
-    const PRODUCT_ORDER = [
-      "19179","19173","33787","25338","19354","19352","19355","4924","33836","19362",
-      "19360","19361","19367","19351","19349","19348","19101","19103","19130","19105",
-      "36137","36138","19110","25339","19320","31343","2812318","2812302","2812313",
-      "2812305","2812310","2812303","2812306","19027"
+    const URUN_SIRASI = [
+      "DÖKME AÇIK",
+      "POŞETLİ",
+      "MAKSİ",
+      "POŞETLİ 14",
+      "DÖKME BAGET",
+      "DÖKME KALÇALI BUT",
+      "DÖKME BUT İNCİK",
+      "DÖKME KEMİKSİZ BUT",
+      "DÖKME DERİLİ LOKUMSUZ BONFİLE",
+      "DÖKME BONFİLE",
+      "DÖKME KOVAN GÖĞÜS",
+      "DÖKME MUZ GÖĞÜS",
+      "DÖKME ÇORBALIK",
+      "DÖKME IZGARALIK KANAT",
+      "DÖKME SPESİYAL KANAT",
+      "DÖKME UCLU KANAT",
+      "TABAKLI KALÇALI BUT",
+      "TABAKLI BAGET",
+      "TABAKLI BUT İNCİK",
+      "TABAKLI IZGARA TAVA",
+      "TABAKLI SPS KANAT",
+      "TABAKLI JUMBO KANAT",
+      "TABAKLI IZGARA KANAT",
+      "TABAKLI BONFİLE",
+      "TABAKLI CİĞER",
+      "TABAKLI TAŞLIK",
+      "TABAKLI YÜREK",
+      "AL-TAV UÇLU KANAT",
+      "AL-TAV BONFİLE",
+      "AL-TAV KEMİKSİZ BUT",
+      "AL-TAV ÇORBALIK",
+      "AL-TAV KALÇALI BUT",
+      "AL-TAV BUT İNCİK",
+      "AL-TAV DÖNERLİK BONFİLE",
+      "ŞENPİLİÇ ÇATAL BUT"
     ];
 
-    const PRODUCT_NAME_MAP = {
-      "19179":"DÖKME AÇIK",
-      "19173":"POŞETLİ",
-      "33787":"MAKSİ",
-      "25338":"POŞETLİ 14",
-      "19354":"DÖKME BAGET",
-      "19352":"DÖKME KALÇALI BUT",
-      "19355":"DÖKME BUT İNCİK",
-      "4924":"DÖKME KEMİKSİZ BUT",
-      "33836":"DÖKME DERİLİ LOKUMSUZ BONFİLE",
-      "19362":"DÖKME BONFİLE",
-      "19360":"DÖKME KOVAN GÖĞÜS",
-      "19361":"DÖKME MUZ GÖĞÜS",
-      "19367":"DÖKME ÇORBALIK",
-      "19351":"DÖKME IZGARALIK KANAT",
-      "19349":"DÖKME SPESİYAL KANAT",
-      "19348":"DÖKME UCLU KANAT",
-      "19101":"TABAKLI KALÇALI BUT",
-      "19103":"TABAKLI BAGET",
-      "19130":"TABAKLI BUT İNCİK",
-      "19105":"TABAKLI IZGARA TAVA",
-      "36137":"TABAKLI SPS KANAT",
-      "36138":"TABAKLI IZGARA KANAT",
-      "19110":"TABAKLI BONFİLE",
-      "25339":"TABAKLI CİĞER",
-      "19320":"TABAKLI TAŞLIK",
-      "31343":"TABAKLI YÜREK",
-      "2812318":"AL-TAV UÇLU KANAT",
-      "2812302":"AL-TAV BONFİLE",
-      "2812313":"AL-TAV KEMİKSİZ BUT",
-      "2812305":"AL-TAV ÇORBALIK",
-      "2812310":"AL-TAV KALÇALI BUT",
-      "2812303":"AL-TAV BUT İNCİK",
-      "2812306":"AL-TAV DÖNERLİK BONFİLE",
-      "19027":"ŞENPİLİÇ ÇATAL BUT"
-    };
+    const dateFilter = document.getElementById("dateFilter");
+    const refreshBtn = document.getElementById("refreshBtn");
+    const statusBox = document.getElementById("statusBox");
 
-    const PRODUCT_INDEX_MAP = Object.fromEntries(PRODUCT_ORDER.map((code, i) => [code, i]));
+    const totalRows = document.getElementById("totalRows");
+    const enteredCount = document.getElementById("enteredCount");
+    const notEnteredCount = document.getElementById("notEnteredCount");
+    const totalQty = document.getElementById("totalQty");
 
-    let NORMALIZED_ORDERS = [];
-    let MATRIX_ROWS = [];
-    let SALESPEOPLE = [...TUM_PLASIYERLER];
+    const girisYapanlar = document.getElementById("girisYapanlar");
+    const girisYapmayanlar = document.getElementById("girisYapmayanlar");
 
-    const els = {
-      statTotalOrders: document.getElementById("statTotalOrders"),
-      statTotalSales: document.getElementById("statTotalSales"),
-      statActiveSales: document.getElementById("statActiveSales"),
-      statTotalItems: document.getElementById("statTotalItems"),
-      activeSalesList: document.getElementById("activeSalesList"),
-      inactiveSalesList: document.getElementById("inactiveSalesList"),
-      statusInfo: document.getElementById("statusInfo"),
-      matrixHead: document.getElementById("matrixHead"),
-      matrixBody: document.getElementById("matrixBody"),
-      matrixFoot: document.getElementById("matrixFoot"),
-      salesSummaryBody: document.getElementById("salesSummaryBody"),
-      recordSummaryBody: document.getElementById("recordSummaryBody"),
-      searchInput: document.getElementById("searchInput"),
-      sortSelect: document.getElementById("sortSelect")
-    };
+    const repSummaryBody = document.getElementById("repSummaryBody");
+    const productSummaryBody = document.getElementById("productSummaryBody");
+    const detailBody = document.getElementById("detailBody");
 
-    function normalizeText(v) {
-      return String(v ?? "").replace(/\s+/g, " ").trim();
+    function todayIso() {
+      const now = new Date();
+      const y = now.getFullYear();
+      const m = String(now.getMonth() + 1).padStart(2, "0");
+      const d = String(now.getDate()).padStart(2, "0");
+      return `${y}-${m}-${d}`;
     }
 
-    function toNumber(v) {
-      if (typeof v === "number" && !isNaN(v)) return v;
-      if (typeof v === "string") {
-        let s = v.replace(/\./g, "").replace(",", ".").replace(/[^\d.-]/g, "");
-        let n = parseFloat(s);
-        return isNaN(n) ? 0 : n;
-      }
-      return 0;
+    function setStatus(text, type = "loading") {
+      statusBox.className = type;
+      statusBox.textContent = text;
     }
 
-    function formatNumberTR(v) {
-      return new Intl.NumberFormat("tr-TR", { maximumFractionDigits: 2 }).format(v || 0);
-    }
-
-    function escapeHtml(str) {
-      return String(str)
+    function escapeHtml(text) {
+      return String(text ?? "")
         .replaceAll("&", "&amp;")
         .replaceAll("<", "&lt;")
         .replaceAll(">", "&gt;")
@@ -581,327 +449,209 @@
         .replaceAll("'", "&#039;");
     }
 
-    function parseProductKey(rawKey) {
-      const full = normalizeText(rawKey);
-      const base = full.split("-")[0];
-      return {
-        rawKey: full,
-        baseCode: base,
-        label: PRODUCT_NAME_MAP[base] || PRODUCT_NAME_MAP[full] || `Ürün ${full}`
-      };
+    function extractIsoDate(trDate) {
+      if (!trDate) return "";
+      if (trDate.includes("-")) return trDate.slice(0, 10);
+
+      const parts = trDate.split(" ")[0].split(".");
+      if (parts.length !== 3) return "";
+
+      const [dd, mm, yyyy] = parts;
+      return `${yyyy}-${mm.padStart(2, "0")}-${dd.padStart(2, "0")}`;
     }
 
-    function formatDisplayDate(dateStr, id) {
-      if (!dateStr && !id) return "-";
+    async function fetchAllRows() {
+      const res = await fetch(`${APPS_SCRIPT_URL}?action=list`);
+      const json = await res.json();
 
-      let dateObj = null;
-
-      if (id && String(id).includes("-")) {
-        const maybeTs = Number(String(id).split("-")[0]);
-        if (!isNaN(maybeTs) && maybeTs > 1000000000000) {
-          dateObj = new Date(maybeTs);
-        }
+      if (!json.ok) {
+        throw new Error(json.error || "Veri alınamadı");
       }
 
-      if (!dateObj && dateStr) {
-        if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
-          dateObj = new Date(dateStr + "T00:00:00");
-        } else {
-          const parsed = new Date(dateStr);
-          if (!isNaN(parsed.getTime())) dateObj = parsed;
-        }
-      }
-
-      if (!dateObj || isNaN(dateObj.getTime())) return dateStr || "-";
-
-      const dd = String(dateObj.getDate()).padStart(2, "0");
-      const mm = String(dateObj.getMonth() + 1).padStart(2, "0");
-      const yyyy = dateObj.getFullYear();
-      const hh = String(dateObj.getHours()).padStart(2, "0");
-      const mi = String(dateObj.getMinutes()).padStart(2, "0");
-
-      return `${dd}-${mm}-${yyyy} ${hh}:${mi}`;
+      return Array.isArray(json.data) ? json.data : [];
     }
 
-    function getRawOrders() {
-      try {
-        const raw = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
-        return Array.isArray(raw) ? raw : [];
-      } catch (e) {
-        return [];
-      }
+    function filterRowsByDate(rows, isoDate) {
+      return rows.filter(row => extractIsoDate(row.tarihSaat) === isoDate);
     }
 
-    function normalizeOrders(rawOrders) {
-      return rawOrders.map(entry => {
-        const salesperson = normalizeText(entry.rep || entry.plasiyer || "Bilinmeyen Plasiyer");
-        const date = normalizeText(entry.date || entry.tarih || "");
-        const recordId = normalizeText(entry.id || "-");
-        const rawItems = entry.items || {};
-        const items = [];
+    function renderChips(container, arr, type) {
+      if (!arr.length) {
+        container.innerHTML = `<div class="empty">Kayıt yok.</div>`;
+        return;
+      }
 
-        if (rawItems && typeof rawItems === "object" && !Array.isArray(rawItems)) {
-          Object.entries(rawItems).forEach(([key, value]) => {
-            const qty = toNumber(value);
-            if (qty <= 0) return;
+      container.innerHTML = arr
+        .map(item => `<span class="chip ${type}">${escapeHtml(item)}</span>`)
+        .join("");
+    }
 
-            const parsed = parseProductKey(key);
-            items.push({
-              productCode: parsed.baseCode,
-              productKey: parsed.rawKey,
-              product: parsed.label,
-              qty
-            });
-          });
+    function renderSummaryCards(rows) {
+      const enteredSet = new Set(
+        rows
+          .map(x => String(x.plasiyer || "").trim())
+          .filter(Boolean)
+      );
+
+      const entered = PLASIYERLER.filter(x => enteredSet.has(x));
+      const notEntered = PLASIYERLER.filter(x => !enteredSet.has(x));
+      const qty = rows.reduce((sum, x) => sum + Number(x.miktar || 0), 0);
+
+      totalRows.textContent = rows.length;
+      enteredCount.textContent = entered.length;
+      notEnteredCount.textContent = notEntered.length;
+      totalQty.textContent = qty;
+
+      renderChips(girisYapanlar, entered, "green");
+      renderChips(girisYapmayanlar, notEntered, "red");
+    }
+
+    function renderRepSummary(rows) {
+      const map = {};
+
+      rows.forEach(row => {
+        const rep = String(row.plasiyer || "").trim();
+        if (!rep) return;
+
+        if (!map[rep]) {
+          map[rep] = {
+            urunler: new Set(),
+            toplam: 0,
+            sonKayit: row.tarihSaat || ""
+          };
         }
 
+        map[rep].urunler.add(String(row.urun || "").trim());
+        map[rep].toplam += Number(row.miktar || 0);
+
+        if ((row.tarihSaat || "") > map[rep].sonKayit) {
+          map[rep].sonKayit = row.tarihSaat || "";
+        }
+      });
+
+      const rowsHtml = PLASIYERLER.map(rep => {
+        const data = map[rep];
         return {
-          recordId,
-          salesperson,
-          date,
-          displayDate: formatDisplayDate(date, recordId),
-          items
+          rep,
+          urunCesidi: data ? data.urunler.size : 0,
+          toplam: data ? data.toplam : 0,
+          sonKayit: data ? data.sonKayit : "-"
         };
-      }).filter(order => order.items.length > 0);
-    }
-
-    function buildMatrix(orders) {
-      const productMap = new Map();
-      let totalItems = 0;
-
-      orders.forEach(order => {
-        order.items.forEach(item => {
-          totalItems += item.qty;
-
-          if (!productMap.has(item.productCode)) {
-            productMap.set(item.productCode, {
-              productCode: item.productCode,
-              product: PRODUCT_NAME_MAP[item.productCode] || item.product,
-              totalsBySales: {},
-              total: 0
-            });
-          }
-
-          const row = productMap.get(item.productCode);
-          row.totalsBySales[order.salesperson] = (row.totalsBySales[order.salesperson] || 0) + item.qty;
-          row.total += item.qty;
-        });
       });
 
-      let rows = Array.from(productMap.values())
-        .filter(r => r.total > 0)
-        .sort((a, b) => {
-          const ai = PRODUCT_INDEX_MAP[a.productCode] ?? 9999;
-          const bi = PRODUCT_INDEX_MAP[b.productCode] ?? 9999;
-          return ai - bi || a.product.localeCompare(b.product, "tr");
-        });
-
-      return { rows, totalItems };
-    }
-
-    function renderStats(orders, totalItems) {
-      const activeSet = new Set(
-        orders
-          .map(o => normalizeText(o.salesperson))
-          .filter(name => TUM_PLASIYERLER.includes(name))
-      );
-
-      els.statTotalOrders.textContent = orders.length;
-      els.statTotalSales.textContent = TUM_PLASIYERLER.length;
-      els.statActiveSales.textContent = activeSet.size;
-      els.statTotalItems.textContent = formatNumberTR(totalItems);
-      els.statusInfo.textContent = `${activeSet.size} giriş yapan, ${TUM_PLASIYERLER.length - activeSet.size} giriş yapmayan`;
-    }
-
-    function renderSalesStatus(orders) {
-      const activeSet = new Set(
-        orders
-          .map(o => normalizeText(o.salesperson))
-          .filter(name => TUM_PLASIYERLER.includes(name))
-      );
-
-      const activeList = TUM_PLASIYERLER.filter(name => activeSet.has(name));
-      const inactiveList = TUM_PLASIYERLER.filter(name => !activeSet.has(name));
-
-      els.activeSalesList.innerHTML = activeList.length
-        ? activeList.map(name => `<span class="chip green">${escapeHtml(name)}</span>`).join("")
-        : `<span class="chip green">Kayıt yok</span>`;
-
-      els.inactiveSalesList.innerHTML = inactiveList.length
-        ? inactiveList.map(name => `<span class="chip red">${escapeHtml(name)}</span>`).join("")
-        : `<span class="chip red">Eksik yok</span>`;
-    }
-
-    function getFilteredSortedRows() {
-      const q = normalizeText(els.searchInput.value).toLocaleLowerCase("tr-TR");
-      const sort = els.sortSelect.value;
-
-      let rows = [...MATRIX_ROWS];
-
-      if (q) {
-        rows = rows.filter(r => r.product.toLocaleLowerCase("tr-TR").includes(q));
-      }
-
-      if (sort === "custom") {
-        rows.sort((a, b) => {
-          const ai = PRODUCT_INDEX_MAP[a.productCode] ?? 9999;
-          const bi = PRODUCT_INDEX_MAP[b.productCode] ?? 9999;
-          return ai - bi || a.product.localeCompare(b.product, "tr");
-        });
-      } else if (sort === "total-desc") {
-        rows.sort((a, b) => b.total - a.total || (PRODUCT_INDEX_MAP[a.productCode] ?? 9999) - (PRODUCT_INDEX_MAP[b.productCode] ?? 9999));
-      } else if (sort === "total-asc") {
-        rows.sort((a, b) => a.total - b.total || (PRODUCT_INDEX_MAP[a.productCode] ?? 9999) - (PRODUCT_INDEX_MAP[b.productCode] ?? 9999));
-      }
-
-      return rows;
-    }
-
-    function renderMatrix() {
-      const rows = getFilteredSortedRows();
-
-      els.matrixHead.innerHTML = `
+      repSummaryBody.innerHTML = rowsHtml.map(item => `
         <tr>
-          <th>Ürün</th>
-          ${SALESPEOPLE.map(s => `<th>${escapeHtml(s)}</th>`).join("")}
-          <th>Toplam</th>
-        </tr>
-      `;
-
-      if (!rows.length) {
-        els.matrixBody.innerHTML = `<tr><td colspan="${SALESPEOPLE.length + 2}" class="muted-empty">Gösterilecek veri yok</td></tr>`;
-        els.matrixFoot.innerHTML = "";
-        return;
-      }
-
-      els.matrixBody.innerHTML = rows.map(r => `
-        <tr>
-          <td>${escapeHtml(r.product)}</td>
-          ${SALESPEOPLE.map(s => {
-            const qty = r.totalsBySales[s] || 0;
-            return `<td>${qty > 0 ? `<span class="qty">${formatNumberTR(qty)}</span>` : `<span class="zero">-</span>`}</td>`;
-          }).join("")}
-          <td><span class="qty">${formatNumberTR(r.total)}</span></td>
+          <td>${escapeHtml(item.rep)}</td>
+          <td>${item.urunCesidi}</td>
+          <td>${item.toplam}</td>
+          <td>${escapeHtml(item.sonKayit)}</td>
         </tr>
       `).join("");
-
-      const colTotals = {};
-      SALESPEOPLE.forEach(s => colTotals[s] = 0);
-
-      rows.forEach(r => {
-        SALESPEOPLE.forEach(s => {
-          colTotals[s] += (r.totalsBySales[s] || 0);
-        });
-      });
-
-      const grandTotal = rows.reduce((sum, r) => sum + r.total, 0);
-
-      els.matrixFoot.innerHTML = `
-        <tr>
-          <td>Genel Toplam</td>
-          ${SALESPEOPLE.map(s => `<td>${formatNumberTR(colTotals[s])}</td>`).join("")}
-          <td>${formatNumberTR(grandTotal)}</td>
-        </tr>
-      `;
     }
 
-    function renderSalesSummary(orders) {
+    function renderProductSummary(rows) {
       const totals = {};
-      TUM_PLASIYERLER.forEach(name => totals[name] = 0);
 
-      orders.forEach(o => {
-        if (!totals.hasOwnProperty(o.salesperson)) return;
-        o.items.forEach(i => totals[o.salesperson] += i.qty);
+      rows.forEach(row => {
+        const urun = String(row.urun || "").trim();
+        const miktar = Number(row.miktar || 0);
+        if (!urun || miktar <= 0) return;
+
+        if (!totals[urun]) totals[urun] = 0;
+        totals[urun] += miktar;
       });
 
-      els.salesSummaryBody.innerHTML = TUM_PLASIYERLER.map(name => `
+      const ordered = [];
+
+      URUN_SIRASI.forEach(urun => {
+        const toplam = totals[urun] || 0;
+        if (toplam > 0) {
+          ordered.push({ urun, toplam });
+        }
+      });
+
+      Object.keys(totals).forEach(urun => {
+        if (!URUN_SIRASI.includes(urun) && totals[urun] > 0) {
+          ordered.push({ urun, toplam: totals[urun] });
+        }
+      });
+
+      if (!ordered.length) {
+        productSummaryBody.innerHTML = `
+          <tr>
+            <td colspan="3" class="muted">Seçilen tarihte ürün kaydı yok.</td>
+          </tr>
+        `;
+        return;
+      }
+
+      productSummaryBody.innerHTML = ordered.map((item, index) => `
         <tr>
-          <td>${escapeHtml(name)}</td>
-          <td><b>${formatNumberTR(totals[name] || 0)}</b></td>
+          <td>${index + 1}</td>
+          <td>${escapeHtml(item.urun)}</td>
+          <td>${item.toplam}</td>
         </tr>
       `).join("");
     }
 
-    function renderRecordSummary(orders) {
-      const rows = [...orders]
-        .sort((a,b) => String(b.recordId).localeCompare(String(a.recordId)))
-        .slice(0, 20);
-
-      els.recordSummaryBody.innerHTML = rows.length
-        ? rows.map(r => `
+    function renderDetails(rows) {
+      if (!rows.length) {
+        detailBody.innerHTML = `
           <tr>
-            <td>${escapeHtml(r.salesperson)}</td>
-            <td>${escapeHtml(r.recordId)}</td>
-            <td>${r.items.length}</td>
-            <td>${escapeHtml(r.displayDate)}</td>
+            <td colspan="5" class="muted">Seçilen tarihte kayıt yok.</td>
           </tr>
-        `).join("")
-        : `<tr><td colspan="4" class="muted-empty">Kayıt yok</td></tr>`;
-    }
-
-    function loadData() {
-      const rawOrders = getRawOrders();
-      NORMALIZED_ORDERS = normalizeOrders(rawOrders);
-      SALESPEOPLE = [...TUM_PLASIYERLER];
-
-      const { rows, totalItems } = buildMatrix(NORMALIZED_ORDERS);
-      MATRIX_ROWS = rows;
-
-      renderStats(NORMALIZED_ORDERS, totalItems);
-      renderSalesStatus(NORMALIZED_ORDERS);
-      renderMatrix();
-      renderSalesSummary(NORMALIZED_ORDERS);
-      renderRecordSummary(NORMALIZED_ORDERS);
-    }
-
-    function exportExcel() {
-      if (!MATRIX_ROWS.length) {
-        alert("İndirilecek veri yok.");
+        `;
         return;
       }
 
-      const rows = getFilteredSortedRows();
-      const wb = XLSX.utils.book_new();
-
-      const matrixData = [];
-      const header = ["Ürün", ...SALESPEOPLE, "Toplam"];
-      matrixData.push(header);
-
-      rows.forEach(r => {
-        matrixData.push([
-          r.product,
-          ...SALESPEOPLE.map(s => r.totalsBySales[s] || 0),
-          r.total
-        ]);
+      const sorted = [...rows].sort((a, b) => {
+        return (b.tarihSaat || "").localeCompare(a.tarihSaat || "");
       });
 
-      const totalsRow = ["Genel Toplam"];
-      SALESPEOPLE.forEach(s => {
-        totalsRow.push(rows.reduce((sum, r) => sum + (r.totalsBySales[s] || 0), 0));
-      });
-      totalsRow.push(rows.reduce((sum, r) => sum + r.total, 0));
-      matrixData.push(totalsRow);
-
-      const ws1 = XLSX.utils.aoa_to_sheet(matrixData);
-      ws1["!cols"] = [{ wch: 38 }, ...SALESPEOPLE.map(() => ({ wch: 18 })), { wch: 18 }];
-      XLSX.utils.book_append_sheet(wb, ws1, "Urun Matrisi");
-
-      const summaryData = [["Plasiyer", "Toplam"]];
-      TUM_PLASIYERLER.forEach(name => {
-        const total = rows.reduce((sum, r) => sum + (r.totalsBySales[name] || 0), 0);
-        summaryData.push([name, total]);
-      });
-      const ws2 = XLSX.utils.aoa_to_sheet(summaryData);
-      ws2["!cols"] = [{ wch: 28 }, { wch: 18 }];
-      XLSX.utils.book_append_sheet(wb, ws2, "Plasiyer Ozeti");
-
-      XLSX.writeFile(wb, "muhasebe_raporu.xlsx");
+      detailBody.innerHTML = sorted.map(row => `
+        <tr>
+          <td>${escapeHtml(row.tarihSaat || "")}</td>
+          <td>${escapeHtml(row.plasiyer || "")}</td>
+          <td>${escapeHtml(row.urun || "")}</td>
+          <td>${Number(row.miktar || 0)}</td>
+          <td>${escapeHtml(row.aciklama || "")}</td>
+        </tr>
+      `).join("");
     }
 
-    els.searchInput.addEventListener("input", renderMatrix);
-    els.sortSelect.addEventListener("change", renderMatrix);
-    window.addEventListener("storage", loadData);
+    async function loadData() {
+      const selectedDate = dateFilter.value;
 
+      if (!selectedDate) {
+        setStatus("Tarih seçin.", "error");
+        return;
+      }
+
+      setStatus("Veriler getiriliyor...", "loading");
+      refreshBtn.disabled = true;
+      refreshBtn.textContent = "Yükleniyor...";
+
+      try {
+        const allRows = await fetchAllRows();
+        const filteredRows = filterRowsByDate(allRows, selectedDate);
+
+        renderSummaryCards(filteredRows);
+        renderRepSummary(filteredRows);
+        renderProductSummary(filteredRows);
+        renderDetails(filteredRows);
+
+        setStatus(`${selectedDate} için ${filteredRows.length} kayıt getirildi.`, "loading");
+      } catch (err) {
+        setStatus("Hata: " + err.message, "error");
+      } finally {
+        refreshBtn.disabled = false;
+        refreshBtn.textContent = "Verileri Getir";
+      }
+    }
+
+    refreshBtn.addEventListener("click", loadData);
+
+    dateFilter.value = todayIso();
     loadData();
   </script>
 </body>
