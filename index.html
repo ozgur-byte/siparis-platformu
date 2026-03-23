@@ -216,20 +216,10 @@
       font-size: 15px;
     }
 
-    .btn-order-card-edit {
-      background: #f59e0b;
-      border-color: #b45309;
-      color: #fff;
-      min-height: 48px;
-      font-size: 15px;
-    }
-
-    .btn-order-card-cancel {
-      background: #dc2626;
-      border-color: #991b1b;
-      color: #fff;
-      min-height: 48px;
-      font-size: 15px;
+    .btn-disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+      filter: grayscale(0.15);
     }
 
     .btn-active {
@@ -310,13 +300,6 @@
       line-height: 1.55;
     }
 
-    .order-actions {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px;
-      margin-top: 12px;
-    }
-
     .screen {
       display: none;
     }
@@ -349,10 +332,6 @@
 
       input[type="number"] {
         font-size: 22px;
-      }
-
-      .order-actions {
-        grid-template-columns: 1fr;
       }
 
       .brand img {
@@ -415,8 +394,8 @@
 
         <div class="actions">
           <button class="btn btn-orders" id="myOrdersBtn">Siparişlerim</button>
-          <button class="btn btn-edit" id="editModeBtn">Siparişime eklemek/çıkarma yapmak istiyorum</button>
-          <button class="btn btn-cancel" id="cancelModeBtn">Siparişimi iptal etmek istiyorum</button>
+          <button class="btn btn-edit btn-disabled" id="editModeBtn" type="button">Siparişime eklemek/çıkarma yapmak istiyorum</button>
+          <button class="btn btn-cancel btn-disabled" id="cancelModeBtn" type="button">Siparişimi iptal etmek istiyorum</button>
         </div>
 
         <div class="message hidden" id="messageBox"></div>
@@ -430,6 +409,8 @@
   </div>
 
   <script>
+    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyzKq7cejCei26si70SuLBtYTvcRIxr25geu6H2CQmIm0Jtn1EnhxaB4CHmdFOZElgqsA/exec";
+
     const PRODUCTS = [
       { id: '19179-1', code: '19179', name: 'DÖKME AÇIK' },
       { id: '19173-1', code: '19173', name: 'POŞETLİ' },
@@ -487,11 +468,9 @@
     const myOrdersSection = document.getElementById('myOrdersSection');
     const ordersList = document.getElementById('ordersList');
 
-    let orders = JSON.parse(localStorage.getItem('siparis_orders') || '[]');
+    let orders = [];
     let activeRep = '';
     let showOrders = false;
-    let currentMode = 'view';
-    let editingOrderId = null;
 
     function todayDefault() {
       const now = new Date();
@@ -558,35 +537,79 @@
       getInputs().forEach(input => {
         input.value = '';
       });
-      editingOrderId = null;
-      submitBtn.textContent = 'Gönder';
-    }
-
-    function saveOrders() {
-      localStorage.setItem('siparis_orders', JSON.stringify(orders));
-    }
-
-    function generateOrderId() {
-      return `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
     }
 
     function getProductById(id) {
       return PRODUCTS.find(p => p.id === id);
     }
 
-    function formatOrderItems(items) {
+    function convertItemsForSheet(items) {
       return Object.entries(items)
         .filter(([, qty]) => Number(qty) > 0)
         .map(([id, qty]) => {
           const product = getProductById(id);
-          return `${product ? product.name : id}: ${qty} koli`;
+          return {
+            urun: product ? product.name : id,
+            miktar: Number(qty)
+          };
         });
     }
 
+    function formatOrderItems(items) {
+      return items
+        .filter(item => Number(item.miktar) > 0)
+        .map(item => `${item.urun}: ${item.miktar} koli`);
+    }
+
+    function groupOrdersByKayitNo(list) {
+      const map = new Map();
+
+      list.forEach(row => {
+        if (!row.kayitNo) return;
+
+        if (!map.has(row.kayitNo)) {
+          map.set(row.kayitNo, {
+            kayitNo: row.kayitNo,
+            rep: row.plasiyer,
+            date: row.tarihSaat || '',
+            items: []
+          });
+        }
+
+        map.get(row.kayitNo).items.push({
+          urun: row.urun,
+          miktar: Number(row.miktar || 0)
+        });
+      });
+
+      return Array.from(map.values()).sort((a, b) => {
+        return new Date(b.date) - new Date(a.date);
+      });
+    }
+
+    async function fetchOrdersFromSheet() {
+      const res = await fetch(`${APPS_SCRIPT_URL}?action=list`);
+      const data = await res.json();
+
+      if (!data.ok) {
+        throw new Error(data.error || 'Siparişler alınamadı');
+      }
+
+      orders = groupOrdersByKayitNo(data.data || []);
+      return orders;
+    }
+
+    async function refreshOrdersList() {
+      try {
+        await fetchOrdersFromSheet();
+        renderOrdersList();
+      } catch (err) {
+        showMessage('Sipariş listesi alınamadı: ' + err.message, 'warning');
+      }
+    }
+
     function getActiveRepOrders() {
-      return orders
-        .filter(order => order.rep === activeRep)
-        .sort((a, b) => new Date(b.date) - new Date(a.date));
+      return orders.filter(order => order.rep === activeRep);
     }
 
     function renderOrdersList() {
@@ -596,6 +619,7 @@
       }
 
       myOrdersSection.classList.remove('hidden');
+
       const repOrders = getActiveRepOrders();
 
       if (!repOrders.length) {
@@ -605,15 +629,7 @@
 
       ordersList.innerHTML = repOrders.map(order => {
         const lines = formatOrderItems(order.items);
-        const total = Object.values(order.items).reduce((sum, value) => sum + Number(value || 0), 0);
-
-        const editButton = currentMode === 'edit'
-          ? `<button class="btn btn-order-card-edit" onclick="startEditOrder('${order.id}')">Bu siparişi düzenle</button>`
-          : '';
-
-        const cancelButton = currentMode === 'cancel'
-          ? `<button class="btn btn-order-card-cancel" onclick="deleteOrder('${order.id}')">Bu siparişi iptal et</button>`
-          : '';
+        const total = order.items.reduce((sum, item) => sum + Number(item.miktar || 0), 0);
 
         return `
           <div class="order-card">
@@ -627,7 +643,6 @@
             <ul class="order-items">
               ${lines.map(line => `<li>${line}</li>`).join('')}
             </ul>
-            ${(editButton || cancelButton) ? `<div class="order-actions">${editButton}${cancelButton}</div>` : ''}
           </div>
         `;
       }).join('');
@@ -651,16 +666,37 @@
       return window.confirm(`${warnings.join('\n')}\n\nEmin misin?`);
     }
 
+    async function sendOrderToSheet(orderData) {
+      const res = await fetch(APPS_SCRIPT_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'text/plain;charset=utf-8'
+        },
+        body: JSON.stringify(orderData)
+      });
+
+      const data = await res.json();
+
+      if (!data.ok) {
+        throw new Error(data.error || 'Kayıt yapılamadı');
+      }
+
+      return data;
+    }
+
     function setActiveRepUI() {
       activeRepBadge.textContent = `Giriş yapan plasiyer: ${activeRep}`;
     }
 
-    function switchToApp() {
+    async function switchToApp() {
       if (!activeRep) return;
       setActiveRepUI();
       loginScreen.classList.remove('active');
       appScreen.classList.add('active');
-      renderOrdersList();
+      clearMessage();
+      if (showOrders) {
+        await refreshOrdersList();
+      }
     }
 
     function switchToLogin() {
@@ -671,23 +707,11 @@
       clearInputs();
       clearMessage();
       showOrders = false;
-      currentMode = 'view';
-      updateModeButtons();
       myOrdersSection.classList.add('hidden');
+      ordersList.innerHTML = '';
     }
 
-    function updateModeButtons() {
-      editModeBtn.classList.remove('btn-active');
-      cancelModeBtn.classList.remove('btn-active');
-
-      if (currentMode === 'edit') {
-        editModeBtn.classList.add('btn-active');
-      } else if (currentMode === 'cancel') {
-        cancelModeBtn.classList.add('btn-active');
-      }
-    }
-
-    function submitOrder() {
+    async function submitOrder() {
       const date = dateInput.value;
       const { cleanItems, total } = collectOrder();
 
@@ -708,96 +732,40 @@
         return;
       }
 
-      if (editingOrderId) {
-        orders = orders.map(order =>
-          order.id === editingOrderId
-            ? { ...order, rep: activeRep, date, items: cleanItems }
-            : order
-        );
-        saveOrders();
+      const payload = {
+        plasiyer: activeRep,
+        aciklama: date,
+        cihaz: navigator.userAgent,
+        testMi: false,
+        urunler: convertItemsForSheet(cleanItems)
+      };
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Gönderiliyor...';
+
+      try {
+        await sendOrderToSheet(payload);
         clearInputs();
-        renderOrdersList();
-        showMessage('Sipariş güncellendi.');
-        return;
+        showMessage('Sipariş kaydedildi.');
+        if (showOrders) {
+          await refreshOrdersList();
+        }
+      } catch (err) {
+        showMessage('Kayıt hatası: ' + err.message, 'warning');
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Gönder';
       }
-
-      orders.push({
-        id: generateOrderId(),
-        rep: activeRep,
-        date,
-        items: cleanItems
-      });
-
-      saveOrders();
-      clearInputs();
-      renderOrdersList();
-      showMessage('Sipariş kaydedildi.');
     }
 
-    function startEditOrder(orderId) {
-      const order = orders.find(item => item.id === orderId && item.rep === activeRep);
-      if (!order) return;
-
-      dateInput.value = order.date;
-      clearMessage();
-
-      getInputs().forEach(input => {
-        input.value = order.items[input.dataset.id] ?? '';
-      });
-
-      editingOrderId = order.id;
-      submitBtn.textContent = 'Güncellemeyi Kaydet';
-      showMessage('Sipariş formu düzenleme için yüklendi. İstediğin ekleme/çıkarma değişikliğini yapıp tekrar kaydet.');
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-
-    function deleteOrder(orderId) {
-      const order = orders.find(item => item.id === orderId && item.rep === activeRep);
-      if (!order) return;
-
-      const total = Object.values(order.items).reduce((sum, value) => sum + Number(value || 0), 0);
-      const confirmed = window.confirm(`${order.date} tarihli ${total} kolilik siparişi iptal etmek istiyor musun?`);
-      if (!confirmed) return;
-
-      orders = orders.filter(item => item.id !== orderId);
-      saveOrders();
-
-      if (editingOrderId === orderId) {
-        clearInputs();
-      }
-
-      renderOrdersList();
-      showMessage('Sipariş iptal edildi.');
-    }
-
-    function setMode(mode) {
-      currentMode = mode;
-
-      if (mode === 'edit') {
-        showOrders = true;
-        showMessage('Düzenlemek istediğin siparişi aşağıdan seç.', 'warning');
-      } else if (mode === 'cancel') {
-        showOrders = true;
-        showMessage('İptal etmek istediğin siparişi aşağıdan seç.', 'warning');
-      } else {
-        clearMessage();
-      }
-
-      updateModeButtons();
-      renderOrdersList();
-    }
-
-    window.startEditOrder = startEditOrder;
-    window.deleteOrder = deleteOrder;
-
-    enterSystemBtn.addEventListener('click', () => {
+    enterSystemBtn.addEventListener('click', async () => {
       if (!repLoginSelect.value) {
         alert('Lütfen plasiyer seçin.');
         return;
       }
 
       activeRep = repLoginSelect.value;
-      switchToApp();
+      await switchToApp();
     });
 
     changeRepBtn.addEventListener('click', () => {
@@ -808,24 +776,28 @@
 
     submitBtn.addEventListener('click', submitOrder);
 
-    myOrdersBtn.addEventListener('click', () => {
+    myOrdersBtn.addEventListener('click', async () => {
       showOrders = !showOrders;
-      if (showOrders) clearMessage();
-      renderOrdersList();
+      clearMessage();
+
+      if (showOrders) {
+        await refreshOrdersList();
+      } else {
+        renderOrdersList();
+      }
     });
 
     editModeBtn.addEventListener('click', () => {
-      setMode(currentMode === 'edit' ? 'view' : 'edit');
+      showMessage('Düzenleme özelliği ikinci aşamada açılacak. Şu an sistem sadece yeni kayıt gönderiyor.', 'warning');
     });
 
     cancelModeBtn.addEventListener('click', () => {
-      setMode(currentMode === 'cancel' ? 'view' : 'cancel');
+      showMessage('İptal özelliği ikinci aşamada açılacak. Şu an sistem sadece yeni kayıt gönderiyor.', 'warning');
     });
 
-    dateInput.value = todayDefault();
     renderPlasiyers();
     renderProducts();
-    updateModeButtons();
+    dateInput.value = todayDefault();
   </script>
 </body>
 </html>
