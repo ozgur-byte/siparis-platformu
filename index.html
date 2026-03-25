@@ -740,9 +740,13 @@
       }
     }
 
-    async function refreshOrdersList() {
+    async function refreshOrdersList(force = false) {
       try {
-        await fetchOrdersFromSheet(false);
+        if (!force && ordersLoaded && Array.isArray(orders)) {
+          renderOrdersList();
+          return;
+        }
+        await fetchOrdersFromSheet(false, force);
         renderOrdersList();
       } catch (err) {
         showMessage('Sipariş listesi alınamadı: ' + err.message, 'warning');
@@ -770,7 +774,7 @@
 
       ordersList.innerHTML = repOrders.map(order => {
         const lines = formatOrderItems(order.urunler || []);
-        const total = Number(order.toplamAdet || 0);
+        const total = (order.urunler || []).reduce((sum, item) => sum + Number(item.adet || item.miktar || 0), 0);
 
         return `
           <div class="order-card">
