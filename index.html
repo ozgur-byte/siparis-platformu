@@ -551,26 +551,37 @@
       return `${y}-${m}-${d}`;
     }
 
-    function parseSortableTime(value) {
+    function parseTrDateTime(value) {
       if (!value) return 0;
       const [datePart, timePart = '00:00'] = String(value).split(' ');
-      if (datePart.includes('-')) return new Date(`${datePart}T${timePart}`).getTime() || 0;
+      if (!datePart) return 0;
+
+      if (datePart.includes('-')) {
+        return new Date(`${datePart}T${timePart}`).getTime() || 0;
+      }
+
       const parts = datePart.split('.');
       if (parts.length !== 3) return 0;
+
       const [dd, mm, yyyy] = parts;
       return new Date(`${yyyy}-${mm}-${dd}T${timePart}`).getTime() || 0;
     }
 
     function displayOrderDate(order) {
-      return order.notlar || order.guncellemeTarihi || order.kayitTarihi || '-';
+      return order.date || '-';
     }
 
     function extractIsoDate(value) {
       if (!value) return todayDefault();
       const dateOnly = String(value).split(' ')[0];
-      if (dateOnly.includes('-')) return dateOnly.slice(0, 10);
+
+      if (dateOnly.includes('-')) {
+        return dateOnly.slice(0, 10);
+      }
+
       const parts = dateOnly.split('.');
       if (parts.length !== 3) return todayDefault();
+
       const [dd, mm, yyyy] = parts;
       return `${yyyy}-${mm.padStart(2, '0')}-${dd.padStart(2, '0')}`;
     }
@@ -636,11 +647,14 @@
     function fillInputsFromItems(items) {
       clearInputs();
 
-      items.forEach(item => {
+      (items || []).forEach(item => {
         const product = PRODUCTS.find(p => p.name === item.urun);
         if (!product) return;
+
         const input = productsWrap.querySelector(`input[data-id="${product.id}"]`);
-        if (input) input.value = Number(item.adet || item.miktar || 0);
+        if (input) {
+          input.value = Number(item.adet || item.miktar || 0);
+        }
       });
     }
 
@@ -655,40 +669,80 @@
           const product = getProductById(id);
           return {
             urun: product ? product.name : id,
-            adet: Number(qty)
+            miktar: Number(qty)
           };
         });
     }
 
     function formatOrderItems(items) {
-      return items
+      return (items || [])
         .filter(item => Number(item.adet || item.miktar || 0) > 0)
         .map(item => `${item.urun}: ${Number(item.adet || item.miktar || 0)} koli`);
     }
 
-    function normalizeOrders(rawList, includeCancelled = false) {
-      const list = Array.isArray(rawList) ? rawList : [];
-      return list
+    function normalizeOrders(list) {
+      return (Array.isArray(list) ? list : [])
         .filter(order => order && order.kayitNo)
-        .filter(order => includeCancelled || String(order.durum || '').toLowerCase() !== 'iptal')
-        .sort((a, b) => parseSortableTime(b.guncellemeTarihi || b.kayitTarihi) - parseSortableTime(a.guncellemeTarihi || a.kayitTarihi));
+        .map(order => ({
+          kayitNo: order.kayitNo,
+          plasiyer: order.plasiyer || '',
+          rep: order.plasiyer || '',
+          durum: order.durum || 'Aktif',
+          notlar: order.notlar || '',
+          kayitTarihi: order.kayitTarihi || '',
+          guncellemeTarihi: order.guncellemeTarihi || '',
+          iptalTarihi: order.iptalTarihi || '',
+          toplamAdet: Number(order.toplamAdet || 0),
+          urunler: Array.isArray(order.urunler) ? order.urunler : []
+        }))
+        .sort((a, b) => parseTrDateTime(b.guncellemeTarihi || b.kayitTarihi || '') - parseTrDateTime(a.guncellemeTarihi || a.kayitTarihi || ''));
     }
 
-    async function fetchOrdersFromSheet(includeCancelled = false) {
-      const res = await fetch(`${APPS_SCRIPT_URL}?action=list`);
-      const data = await res.json();
+    let ordersLoaded = false;
+    let ordersLoadingPromise = null;
 
-      if (!data.ok) {
-        throw new Error(data.error || 'Siparişler alınamadı');
+    async function fetchOrdersFromSheet(includeCancelled = false, force = false) {
+      if (!force && ordersLoaded && Array.isArray(orders) && orders.length) {
+        let cached = orders;
+        if (!includeCancelled) {
+          cached = cached.filter(x => String(x.durum || '').toLowerCase() !== 'iptal');
+        }
+        return cached;
       }
 
-      orders = normalizeOrders(data.data || [], includeCancelled);
-      return orders;
+      if (!force && ordersLoadingPromise) {
+        const pending = await ordersLoadingPromise;
+        return includeCancelled
+          ? pending
+          : pending.filter(x => String(x.durum || '').toLowerCase() !== 'iptal');
+      }
+
+      ordersLoadingPromise = (async () => {
+        const res = await fetch(`${APPS_SCRIPT_URL}?action=list&includeCancelled=true&_ts=${Date.now()}`);
+        const data = await res.json();
+
+        if (!data.ok) {
+          throw new Error(data.error || 'Siparişler alınamadı');
+        }
+
+        orders = normalizeOrders(data.data || []);
+        ordersLoaded = true;
+        return orders;
+      })();
+
+      try {
+        const loaded = await ordersLoadingPromise;
+        return includeCancelled
+          ? loaded
+          : loaded.filter(x => String(x.durum || '').toLowerCase() !== 'iptal');
+      } finally {
+        ordersLoadingPromise = null;
+      }
     }
 
     async function refreshOrdersList() {
       try {
-        await fetchOrdersFromSheet(mode === 'cancel');
+        await fetchOrdersFromSheet(false);
         renderOrdersList();
       } catch (err) {
         showMessage('Sipariş listesi alınamadı: ' + err.message, 'warning');
@@ -696,7 +750,7 @@
     }
 
     function getActiveRepOrders() {
-      return orders.filter(order => order.plasiyer === activeRep);
+      return (orders || []).filter(order => order.plasiyer === activeRep && String(order.durum || '').toLowerCase() !== 'iptal');
     }
 
     function renderOrdersList() {
@@ -706,6 +760,7 @@
       }
 
       myOrdersSection.classList.remove('hidden');
+
       const repOrders = getActiveRepOrders();
 
       if (!repOrders.length) {
@@ -725,17 +780,16 @@
                 <div class="order-sub">Sipariş Tarihi: ${order.notlar || '-'}</div>
                 <div class="order-sub">Kayıt/Zaman: ${order.guncellemeTarihi || order.kayitTarihi || '-'}</div>
                 <div class="order-sub">Kayıt No: ${order.kayitNo}</div>
-                <div class="order-sub">Durum: ${order.durum || '-'}</div>
               </div>
               <div class="order-total">${total} koli</div>
             </div>
             <ul class="order-items">
-              ${lines.map(line => `<li>${line}</li>`).join('')}
+              ${lines.length ? lines.map(line => `<li>${line}</li>`).join('') : '<li>Ürün görünmüyor</li>'}
             </ul>
             ${(mode === 'edit' || mode === 'cancel') ? `
               <div class="order-actions">
-                ${mode === 'edit' && String(order.durum || '').toLowerCase() !== 'iptal' ? `<button class="mini-btn mini-edit" onclick="startEditOrder('${order.kayitNo}')">Bu siparişi düzenle</button>` : ''}
-                ${mode === 'cancel' && String(order.durum || '').toLowerCase() !== 'iptal' ? `<button class="mini-btn mini-cancel" onclick="cancelOrderById('${order.kayitNo}')">Bu siparişi iptal et</button>` : ''}
+                ${mode === 'edit' ? `<button class="mini-btn mini-edit" onclick="startEditOrder('${order.kayitNo}')">Bu siparişi düzenle</button>` : ''}
+                ${mode === 'cancel' ? `<button class="mini-btn mini-cancel" onclick="cancelOrderById('${order.kayitNo}')">Bu siparişi iptal et</button>` : ''}
               </div>
             ` : ''}
           </div>
@@ -757,10 +811,8 @@
         .filter(Boolean);
 
       if (!warnings.length) return true;
-      return window.confirm(`${warnings.join('
-')}
 
-Emin misin?`);
+      return window.confirm(`${warnings.join('\n')}\n\nEmin misin?`);
     }
 
     async function sendOrderRequest(payload) {
@@ -773,7 +825,11 @@ Emin misin?`);
       });
 
       const data = await res.json();
-      if (!data.ok) throw new Error(data.error || 'İşlem yapılamadı');
+
+      if (!data.ok) {
+        throw new Error(data.error || 'İşlem yapılamadı');
+      }
+
       return data;
     }
 
@@ -784,8 +840,10 @@ Emin misin?`);
     function updateModeUI() {
       submitBtn.textContent = editingOrderId ? 'Siparişi Güncelle' : 'Gönder';
       resetModeBtn.classList.toggle('hidden', !editingOrderId && mode === 'create');
+
       editModeBtn.classList.toggle('btn-active', mode === 'edit');
       cancelModeBtn.classList.toggle('btn-active', mode === 'cancel');
+
       modeBadge.className = 'mode-badge';
 
       if (editingOrderId) {
@@ -793,16 +851,19 @@ Emin misin?`);
         modeBadge.textContent = `Mod: Düzenleme (${editingOrderId})`;
         return;
       }
+
       if (mode === 'edit') {
         modeBadge.classList.add('mode-edit');
         modeBadge.textContent = 'Mod: Düzenlemek için sipariş seç';
         return;
       }
+
       if (mode === 'cancel') {
         modeBadge.classList.add('mode-cancel');
         modeBadge.textContent = 'Mod: İptal etmek için sipariş seç';
         return;
       }
+
       modeBadge.classList.add('mode-normal');
       modeBadge.textContent = 'Mod: Yeni sipariş';
     }
@@ -823,7 +884,9 @@ Emin misin?`);
       appScreen.classList.add('active');
       clearMessage();
       resetToCreateMode();
-      if (showOrders) await refreshOrdersList();
+      if (showOrders) {
+        await refreshOrdersList();
+      }
     }
 
     function switchToLogin() {
@@ -848,22 +911,21 @@ Emin misin?`);
         return;
       }
 
-      if (!checkHighQuantityWarnings(cleanItems)) {
+      const highQtyConfirmed = checkHighQuantityWarnings(cleanItems);
+      if (!highQtyConfirmed) {
         showMessage('Yüksek koli uyarısı nedeniyle işlem iptal edildi.', 'warning');
         return;
       }
 
       const actionText = editingOrderId ? 'Bu sipariş güncellenecek.' : 'Yeni sipariş gönderilecek.';
-      const confirmed = window.confirm(`${actionText}
-Toplam sipariş koli miktarı: ${total} koli.
-Onaylıyor musun?`);
+      const confirmed = window.confirm(`${actionText}\nToplam sipariş koli miktarı: ${total} koli.\nOnaylıyor musun?`);
       if (!confirmed) {
         showMessage('İşlem iptal edildi.', 'warning');
         return;
       }
 
       const payload = {
-        action: editingOrderId ? 'updateOrder' : 'createOrder',
+        action: editingOrderId ? 'updateOrder' : 'create',
         kayitNo: editingOrderId || undefined,
         plasiyer: activeRep,
         aciklama: date,
@@ -877,9 +939,12 @@ Onaylıyor musun?`);
 
       try {
         await sendOrderRequest(payload);
+        ordersLoaded = false;
         showMessage(editingOrderId ? 'Sipariş güncellendi.' : 'Sipariş kaydedildi.', 'success');
         resetToCreateMode();
-        if (showOrders) await refreshOrdersList();
+        if (showOrders) {
+          await refreshOrdersList();
+        }
       } catch (err) {
         showMessage('İşlem hatası: ' + err.message, 'warning');
       } finally {
@@ -891,7 +956,8 @@ Onaylıyor musun?`);
     window.startEditOrder = async function(kayitNo) {
       try {
         await fetchOrdersFromSheet(false);
-        const order = orders.find(x => x.kayitNo === kayitNo && x.plasiyer === activeRep);
+        const order = orders.find(x => x.kayitNo === kayitNo && x.plasiyer === activeRep && String(x.durum || '').toLowerCase() !== 'iptal');
+
         if (!order) {
           showMessage('Düzenlenecek sipariş bulunamadı.', 'warning');
           return;
@@ -914,10 +980,21 @@ Onaylıyor musun?`);
       if (!confirmed) return;
 
       try {
-        await sendOrderRequest({ action: 'cancelOrder', kayitNo });
+        await sendOrderRequest({
+          action: 'cancelOrder',
+          kayitNo
+        });
+
+        ordersLoaded = false;
         showMessage('Sipariş tamamen iptal edildi.', 'success');
-        if (editingOrderId === kayitNo) resetToCreateMode();
-        if (showOrders) await refreshOrdersList();
+
+        if (editingOrderId === kayitNo) {
+          resetToCreateMode();
+        }
+
+        if (showOrders) {
+          await refreshOrdersList();
+        }
       } catch (err) {
         showMessage('İptal hatası: ' + err.message, 'warning');
       }
@@ -928,6 +1005,7 @@ Onaylıyor musun?`);
         alert('Lütfen plasiyer seçin.');
         return;
       }
+
       activeRep = repLoginSelect.value;
       await switchToApp();
     });
@@ -946,21 +1024,40 @@ Onaylıyor musun?`);
     });
 
     myOrdersBtn.addEventListener('click', async () => {
+      if (myOrdersBtn.disabled) return;
       showOrders = !showOrders;
       clearMessage();
+
       if (showOrders) {
-        await refreshOrdersList();
+        myOrdersBtn.disabled = true;
+        const originalText = myOrdersBtn.textContent;
+        myOrdersBtn.textContent = 'Yükleniyor...';
+        try {
+          await refreshOrdersList();
+        } finally {
+          myOrdersBtn.disabled = false;
+          myOrdersBtn.textContent = originalText;
+        }
       } else {
         renderOrdersList();
       }
     });
 
     editModeBtn.addEventListener('click', async () => {
+      if (editModeBtn.disabled) return;
       mode = mode === 'edit' && !editingOrderId ? 'create' : 'edit';
       if (mode === 'edit') {
         showOrders = true;
-        await refreshOrdersList();
-        showMessage('Düzenlemek istediğin siparişte "Bu siparişi düzenle" butonuna bas.', 'success');
+        editModeBtn.disabled = true;
+        const originalText = editModeBtn.textContent;
+        editModeBtn.textContent = 'Yükleniyor...';
+        try {
+          await refreshOrdersList();
+          showMessage('Düzenlemek istediğin siparişte "Bu siparişi düzenle" butonuna bas.', 'success');
+        } finally {
+          editModeBtn.disabled = false;
+          editModeBtn.textContent = originalText;
+        }
       } else {
         resetToCreateMode();
         showMessage('Yeni sipariş moduna dönüldü.', 'success');
@@ -969,12 +1066,24 @@ Onaylıyor musun?`);
     });
 
     cancelModeBtn.addEventListener('click', async () => {
-      if (editingOrderId) resetToCreateMode();
+      if (cancelModeBtn.disabled) return;
+      if (editingOrderId) {
+        resetToCreateMode();
+      }
+
       mode = mode === 'cancel' ? 'create' : 'cancel';
       if (mode === 'cancel') {
         showOrders = true;
-        await refreshOrdersList();
-        showMessage('İptal etmek istediğin siparişte "Bu siparişi iptal et" butonuna bas.', 'warning');
+        cancelModeBtn.disabled = true;
+        const originalText = cancelModeBtn.textContent;
+        cancelModeBtn.textContent = 'Yükleniyor...';
+        try {
+          await refreshOrdersList();
+          showMessage('İptal etmek istediğin siparişte "Bu siparişi iptal et" butonuna bas.', 'warning');
+        } finally {
+          cancelModeBtn.disabled = false;
+          cancelModeBtn.textContent = originalText;
+        }
       } else {
         showMessage('Yeni sipariş moduna dönüldü.', 'success');
       }
