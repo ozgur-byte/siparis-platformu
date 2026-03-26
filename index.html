@@ -551,6 +551,18 @@
       return `${y}-${m}-${d}`;
     }
 
+
+    function normalizeStatus(value) {
+      return String(value || '')
+        .trim()
+        .toLocaleLowerCase('tr-TR')
+        .replace(/ı/g, 'i');
+    }
+
+    function isCancelledStatus(value) {
+      const s = normalizeStatus(value);
+      return s === 'iptal' || s === 'iptal edildi';
+    }
     function parseTrDateTime(value) {
       if (!value) return 0;
       const [datePart, timePart = '00:00'] = String(value).split(' ');
@@ -705,7 +717,7 @@
       if (!force && ordersLoaded && Array.isArray(orders) && orders.length) {
         let cached = orders;
         if (!includeCancelled) {
-          cached = cached.filter(x => String(x.durum || '').toLowerCase() !== 'iptal');
+          cached = cached.filter(x => !isCancelledStatus(x.durum));
         }
         return cached;
       }
@@ -714,7 +726,7 @@
         const pending = await ordersLoadingPromise;
         return includeCancelled
           ? pending
-          : pending.filter(x => String(x.durum || '').toLowerCase() !== 'iptal');
+          : pending.filter(x => !isCancelledStatus(x.durum));
       }
 
       ordersLoadingPromise = (async () => {
@@ -734,7 +746,7 @@
         const loaded = await ordersLoadingPromise;
         return includeCancelled
           ? loaded
-          : loaded.filter(x => String(x.durum || '').toLowerCase() !== 'iptal');
+          : loaded.filter(x => !isCancelledStatus(x.durum));
       } finally {
         ordersLoadingPromise = null;
       }
@@ -754,7 +766,7 @@
     }
 
     function getActiveRepOrders() {
-      return (orders || []).filter(order => order.plasiyer === activeRep && String(order.durum || '').toLowerCase() !== 'iptal');
+      return (orders || []).filter(order => order.plasiyer === activeRep && !isCancelledStatus(order.durum));
     }
 
     function renderOrdersList() {
@@ -960,7 +972,7 @@
     window.startEditOrder = async function(kayitNo) {
       try {
         await fetchOrdersFromSheet(false);
-        const order = orders.find(x => x.kayitNo === kayitNo && x.plasiyer === activeRep && String(x.durum || '').toLowerCase() !== 'iptal');
+        const order = orders.find(x => x.kayitNo === kayitNo && x.plasiyer === activeRep && !isCancelledStatus(x.durum));
 
         if (!order) {
           showMessage('Düzenlenecek sipariş bulunamadı.', 'warning');
