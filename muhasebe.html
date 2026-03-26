@@ -563,46 +563,84 @@
         .replaceAll("'", "&#039;");
     }
 
-    function extractIsoDate(value) {
-      if (!value) return "";
-      if (String(value).includes("-")) return String(value).slice(0, 10);
-      const rawDate = String(value).split(" ")[0];
+    function normalizeToken(value) {
+      return String(value ?? "")
+        .trim()
+        .toLocaleLowerCase("tr")
+        .replace(/ı/g, "i")
+        .replace(/ö/g, "o")
+        .replace(/ü/g, "u")
+        .replace(/ş/g, "s")
+        .replace(/ğ/g, "g")
+        .replace(/ç/g, "c");
+    }
+
+    function isCancelledStatus(value) {
+      return normalizeToken(value) === "iptal";
+    }
+
+    function getOrderDateText(order) {
+      return String(
+        order?.guncellemeTarihi ||
+        order?.kayitTarihi ||
+        order?.tarihSaat ||
+        order?.notlar ||
+        ""
+      ).trim();
+    }
+
+    function expandOrdersToRows(list) {
+      return (Array.isArray(list) ? list : [])
+        .filter(order => order && order.kayitNo && !isCancelledStatus(order.durum))
+        .flatMap(order => {
+          const dateText = getOrderDateText(order);
+          const products = Array.isArray(order.urunler) ? order.urunler : [];
+
+          return products
+            .map(item => ({
+              kayitNo: order.kayitNo || "",
+              plasiyer: String(order.plasiyer || "").trim(),
+              durum: String(order.durum || "Aktif").trim(),
+              tarihSaat: dateText,
+              urun: String(item?.urun || item?.ad || item?.name || "").trim(),
+              miktar: Number(item?.adet || item?.miktar || item?.qty || item?.quantity || 0)
+            }))
+            .filter(row => row.plasiyer && row.urun && row.miktar > 0);
+        });
+    }
+
+    function extractIsoDate(trDate) {
+      if (!trDate) return "";
+      if (trDate.includes("-")) return trDate.slice(0, 10);
+
+      const rawDate = trDate.split(" ")[0];
       const parts = rawDate.split(".");
       if (parts.length !== 3) return "";
+
       const [dd, mm, yyyy] = parts;
       return `${yyyy}-${mm.padStart(2, "0")}-${dd.padStart(2, "0")}`;
     }
 
-    async function fetchOrders() {
+    let allRowsCache = null;
+
+    async function fetchAllRows(force = false) {
+      if (!force && Array.isArray(allRowsCache)) {
+        return allRowsCache;
+      }
+
       const res = await fetch(`${APPS_SCRIPT_URL}?action=list`);
       const json = await res.json();
-      if (!json.ok) throw new Error(json.error || "Veri alınamadı");
-      return Array.isArray(json.data) ? json.data : [];
-    }
 
-    function expandOrdersToRows(orders) {
-      return orders
-        .filter(order => String(order.durum || '').toLowerCase() !== 'iptal')
-        .flatMap(order => {
-          const orderDate = extractIsoDate(order.notlar || order.kayitTarihi);
-          const logTime = order.guncellemeTarihi || order.kayitTarihi || '';
-          const items = Array.isArray(order.urunler) ? order.urunler : [];
+      if (!json.ok) {
+        throw new Error(json.error || "Veri alınamadı");
+      }
 
-          return items
-            .filter(item => item && item.urun && Number(item.adet || item.miktar || 0) > 0)
-            .map(item => ({
-              kayitNo: order.kayitNo || '',
-              plasiyer: String(order.plasiyer || '').trim(),
-              urun: String(item.urun || '').trim(),
-              miktar: Number(item.adet || item.miktar || 0),
-              tarihSaat: logTime,
-              siparisTarihi: orderDate
-            }));
-        });
+      allRowsCache = expandOrdersToRows(json.data || []);
+      return allRowsCache;
     }
 
     function filterRowsByDate(rows, isoDate) {
-      return rows.filter(row => row.siparisTarihi === isoDate);
+      return rows.filter(row => extractIsoDate(row.tarihSaat) === isoDate);
     }
 
     function renderChips(container, arr, type) {
@@ -610,11 +648,19 @@
         container.innerHTML = `<div class="empty">Kayıt yok.</div>`;
         return;
       }
-      container.innerHTML = arr.map(item => `<span class="chip ${type}">• ${escapeHtml(item)}</span>`).join("");
+
+      container.innerHTML = arr
+        .map(item => `<span class="chip ${type}">• ${escapeHtml(item)}</span>`)
+        .join("");
     }
 
     function renderSummaryCards(rows) {
-      const enteredSet = new Set(rows.map(x => String(x.plasiyer || '').trim()).filter(Boolean));
+      const enteredSet = new Set(
+        rows
+          .map(x => String(x.plasiyer || "").trim())
+          .filter(Boolean)
+      );
+
       const entered = PLASIYERLER.filter(x => enteredSet.has(x));
       const notEntered = PLASIYERLER.filter(x => !enteredSet.has(x));
       const qty = rows.reduce((sum, x) => sum + Number(x.miktar || 0), 0);
@@ -624,32 +670,41 @@
       notEnteredCount.textContent = notEntered.length;
       totalQty.textContent = qty;
 
-      renderChips(girisYapanlar, entered, 'green');
-      renderChips(girisYapmayanlar, notEntered, 'red');
+      renderChips(girisYapanlar, entered, "green");
+      renderChips(girisYapmayanlar, notEntered, "red");
     }
 
     function renderRepSummary(rows) {
       const map = {};
 
       rows.forEach(row => {
-        const rep = String(row.plasiyer || '').trim();
+        const rep = String(row.plasiyer || "").trim();
         if (!rep) return;
 
         if (!map[rep]) {
-          map[rep] = { urunler: new Set(), toplam: 0, sonKayit: row.tarihSaat || '' };
+          map[rep] = {
+            urunler: new Set(),
+            toplam: 0,
+            sonKayit: row.tarihSaat || ""
+          };
         }
 
-        map[rep].urunler.add(String(row.urun || '').trim());
+        map[rep].urunler.add(String(row.urun || "").trim());
         map[rep].toplam += Number(row.miktar || 0);
-        if ((row.tarihSaat || '') > map[rep].sonKayit) map[rep].sonKayit = row.tarihSaat || '';
+
+        if ((row.tarihSaat || "") > map[rep].sonKayit) {
+          map[rep].sonKayit = row.tarihSaat || "";
+        }
       });
 
       repSummaryBody.innerHTML = PLASIYERLER.map(rep => {
         const data = map[rep];
         const urunCesidi = data ? data.urunler.size : 0;
         const toplam = data ? data.toplam : 0;
-        const sonKayit = data ? data.sonKayit : '-';
-        const durum = data ? `<span class="chip green">Aktif</span>` : `<span class="chip red">Bekliyor</span>`;
+        const sonKayit = data ? data.sonKayit : "-";
+        const durum = data
+          ? `<span class="chip green">Aktif</span>`
+          : `<span class="chip red">Bekliyor</span>`;
 
         return `
           <tr>
@@ -660,7 +715,7 @@
             <td>${durum}</td>
           </tr>
         `;
-      }).join('');
+      }).join("");
     }
 
     function buildExcelMatrix(rows) {
@@ -687,11 +742,13 @@
       }));
 
       const indexByName = {};
-      matrix.forEach((row, i) => { indexByName[row.ad] = i; });
+      matrix.forEach((row, i) => {
+        indexByName[row.ad] = i;
+      });
 
       rows.forEach(row => {
-        const urun = String(row.urun || '').trim();
-        const rep = String(row.plasiyer || '').trim();
+        const urun = String(row.urun || "").trim();
+        const rep = String(row.plasiyer || "").trim();
         const miktar = Number(row.miktar || 0);
 
         if (!urun || !rep || miktar <= 0) return;
@@ -710,6 +767,7 @@
     function buildExcelHtml(matrix, selectedDate) {
       const rowsHtml = matrix.map((row, index) => {
         const excelRowNo = index + 4;
+
         return `
           <tr>
             <td style="border:1px solid #000; font-weight:700; background:#fff7cc; text-align:center;">${row.kod || ""}</td>
@@ -723,22 +781,41 @@
             <td style="border:1px solid #000; text-align:center; font-weight:700; background:#fff7cc;">${row.STOK || ""}</td>
             <td style="border:1px solid #000; text-align:center; font-weight:700; background:#e0f2fe;">${row.GELECEK || ""}</td>
             <td style="border:1px solid #000; text-align:center; font-weight:700; background:#fff7cc;">${row.GZP_OLD || ""}</td>
-            <td x:fmla="=I${excelRowNo}+J${excelRowNo}-K${excelRowNo}" style="border:1px solid #000; text-align:center; font-weight:900; background:#dcfce7; color:#166534;"></td>
+            <td x:fmla="=I${excelRowNo}+J${excelRowNo}-K${excelRowNo}"
+                style="border:1px solid #000; text-align:center; font-weight:900; background:#dcfce7; color:#166534;">
+            </td>
           </tr>
         `;
-      }).join('');
+      }).join("");
 
       return `
-        <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+        <html xmlns:o="urn:schemas-microsoft-com:office:office"
+              xmlns:x="urn:schemas-microsoft-com:office:excel"
+              xmlns="http://www.w3.org/TR/REC-html40">
         <head>
           <meta charset="UTF-8">
           <!--[if gte mso 9]>
-          <xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet><x:Name>Muhasebe</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml>
+          <xml>
+            <x:ExcelWorkbook>
+              <x:ExcelWorksheets>
+                <x:ExcelWorksheet>
+                  <x:Name>Muhasebe</x:Name>
+                  <x:WorksheetOptions>
+                    <x:DisplayGridlines/>
+                  </x:WorksheetOptions>
+                </x:ExcelWorksheet>
+              </x:ExcelWorksheets>
+            </x:ExcelWorkbook>
+          </xml>
           <![endif]-->
         </head>
         <body>
           <table border="0" cellpadding="0" cellspacing="0" style="border-collapse:collapse; font-family:Arial, sans-serif; font-size:12pt;">
-            <tr><td colspan="12" style="font-size:16pt; font-weight:700; padding:10px 6px; color:#1f2937;">Sipariş Matrisi - ${selectedDate}</td></tr>
+            <tr>
+              <td colspan="12" style="font-size:16pt; font-weight:700; padding:10px 6px; color:#1f2937;">
+                Sipariş Matrisi - ${selectedDate}
+              </td>
+            </tr>
             <tr><td colspan="12" style="height:8px;"></td></tr>
             <tr>
               <td style="border:1px solid #000; background:#fff7cc; font-weight:700; text-align:center; width:90px;"></td>
@@ -764,7 +841,10 @@
     function downloadStyledExcel(rows, selectedDate) {
       const matrix = buildExcelMatrix(rows);
       const html = buildExcelHtml(matrix, selectedDate);
-      const blob = new Blob(["﻿" + html], { type: "application/vnd.ms-excel;charset=utf-8;" });
+      const blob = new Blob(["\ufeff" + html], {
+        type: "application/vnd.ms-excel;charset=utf-8;"
+      });
+
       const link = document.createElement("a");
       const url = URL.createObjectURL(blob);
       link.href = url;
@@ -775,8 +855,9 @@
       URL.revokeObjectURL(url);
     }
 
-    async function loadData() {
+    async function loadData(force = true) {
       const selectedDate = dateFilter.value;
+
       if (!selectedDate) {
         setStatus("Tarih seçin.", "error");
         return;
@@ -787,12 +868,13 @@
       refreshBtn.textContent = "Yükleniyor...";
 
       try {
-        const orders = await fetchOrders();
-        const allRows = expandOrdersToRows(orders);
+        const allRows = await fetchAllRows(force);
         const filteredRows = filterRowsByDate(allRows, selectedDate);
+
         renderSummaryCards(filteredRows);
         renderRepSummary(filteredRows);
-        setStatus(`${selectedDate} için ${filteredRows.length} ürün satırı getirildi.`, "success");
+
+        setStatus(`${selectedDate} için ${filteredRows.length} kayıt getirildi.`, "success");
       } catch (err) {
         setStatus("Hata: " + err.message, "error");
       } finally {
@@ -803,6 +885,7 @@
 
     async function exportExcel() {
       const selectedDate = dateFilter.value;
+
       if (!selectedDate) {
         setStatus("Excel için tarih seçin.", "error");
         return;
@@ -813,8 +896,7 @@
       setStatus("Excel çıktısı hazırlanıyor...", "loading");
 
       try {
-        const orders = await fetchOrders();
-        const allRows = expandOrdersToRows(orders);
+        const allRows = await fetchAllRows();
         const filteredRows = filterRowsByDate(allRows, selectedDate);
         downloadStyledExcel(filteredRows, selectedDate);
         setStatus("Biçimlendirilmiş Excel çıktısı indirildi.", "success");
@@ -828,8 +910,9 @@
 
     refreshBtn.addEventListener("click", loadData);
     excelBtn.addEventListener("click", exportExcel);
+
     dateFilter.value = todayIso();
-    setStatus('Hazır.', 'success');
+    loadData(true);
   </script>
 </body>
 </html>
