@@ -583,19 +583,71 @@
       return order.date || '-';
     }
 
+    function toTurkeyIsoDate(dateObj) {
+      if (!(dateObj instanceof Date) || Number.isNaN(dateObj.getTime())) return '';
+
+      const parts = new Intl.DateTimeFormat('en-CA', {
+        timeZone: 'Europe/Istanbul',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+      }).formatToParts(dateObj);
+
+      const map = {};
+      parts.forEach(part => {
+        if (part.type !== 'literal') {
+          map[part.type] = part.value;
+        }
+      });
+
+      return map.year && map.month && map.day
+        ? `${map.year}-${map.month}-${map.day}`
+        : '';
+    }
+
     function extractIsoDate(value) {
       if (!value) return todayDefault();
-      const dateOnly = String(value).split(' ')[0];
 
-      if (dateOnly.includes('-')) {
-        return dateOnly.slice(0, 10);
+      const text = String(value).trim();
+      if (!text) return todayDefault();
+
+      if (/^\d{4}-\d{2}-\d{2}$/.test(text)) {
+        return text;
       }
 
-      const parts = dateOnly.split('.');
+      if (/^\d{4}-\d{2}-\d{2}T/.test(text)) {
+        const parsed = new Date(text);
+        const turkeyIso = toTurkeyIsoDate(parsed);
+        return turkeyIso || text.slice(0, 10);
+      }
+
+      if (/^\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}/.test(text)) {
+        const parsed = new Date(text.replace(' ', 'T'));
+        const turkeyIso = toTurkeyIsoDate(parsed);
+        return turkeyIso || text.slice(0, 10);
+      }
+
+      const rawDate = text.split(' ')[0];
+
+      if (/^\d{4}-\d{2}-\d{2}/.test(rawDate)) {
+        return rawDate.slice(0, 10);
+      }
+
+      const parts = rawDate.split('.');
       if (parts.length !== 3) return todayDefault();
 
       const [dd, mm, yyyy] = parts;
-      return `${yyyy}-${mm.padStart(2, '0')}-${dd.padStart(2, '0')}`;
+      return `${yyyy}-${String(mm).padStart(2, '0')}-${String(dd).padStart(2, '0')}`;
+    }
+
+    function formatOrderDateForUi(value) {
+      const iso = extractIsoDate(value);
+      if (!iso) return '-';
+
+      const [yyyy, mm, dd] = iso.split('-');
+      if (!yyyy || !mm || !dd) return String(value || '-');
+
+      return `${dd}.${mm}.${yyyy}`;
     }
 
     function showMessage(text, type = 'normal') {
@@ -793,7 +845,7 @@
             <div class="order-head">
               <div>
                 <div class="order-title">${order.plasiyer || '-'}</div>
-                <div class="order-sub">Sipariş Tarihi: ${order.notlar || '-'}</div>
+                <div class="order-sub">Sipariş Tarihi: ${formatOrderDateForUi(order.notlar || order.kayitTarihi || order.guncellemeTarihi)}</div>
                 <div class="order-sub">Kayıt/Zaman: ${order.guncellemeTarihi || order.kayitTarihi || '-'}</div>
                 <div class="order-sub">Kayıt No: ${order.kayitNo}</div>
               </div>
@@ -922,6 +974,11 @@
       const date = dateInput.value;
       const { cleanItems, total } = collectOrder();
 
+      if (!date) {
+        showMessage('Tarih seçmen gerekiyor.', 'warning');
+        return;
+      }
+
       if (!Object.keys(cleanItems).length) {
         showMessage('En az bir ürün için koli miktarı girmen gerekiyor.', 'warning');
         return;
@@ -945,6 +1002,8 @@
         kayitNo: editingOrderId || undefined,
         plasiyer: activeRep,
         aciklama: date,
+        notlar: date,
+        siparisTarihi: date,
         cihaz: navigator.userAgent,
         testMi: false,
         urunler: convertItemsForSheet(cleanItems)
