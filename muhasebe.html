@@ -4,342 +4,154 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Muhasebe Ekranı</title>
-
   <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
 
   <style>
-    :root {
-      --bg: #f4f7fb;
-      --card: #ffffff;
-      --text: #1f2937;
-      --muted: #6b7280;
-      --line: #dbe3ef;
-      --blue: #1d4ed8;
-      --blue2: #2563eb;
-      --green: #0f9d58;
-      --red: #dc2626;
-      --shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
-      --radius: 16px;
-    }
-
-    * {
-      box-sizing: border-box;
-    }
-
     body {
       margin: 0;
-      font-family: Aptos Narrow, Aptos, Arial, sans-serif;
-      background: linear-gradient(180deg, #eef4ff 0%, var(--bg) 100%);
-      color: var(--text);
+      padding: 20px;
+      font-family: Arial, sans-serif;
+      background: #f5f6f8;
+      color: #222;
     }
 
-    .wrap {
-      max-width: 1500px;
+    .container {
+      max-width: 1400px;
       margin: 0 auto;
-      padding: 24px;
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      padding: 16px;
     }
 
     .topbar {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      gap: 16px;
+      gap: 12px;
       flex-wrap: wrap;
-      margin-bottom: 20px;
+      margin-bottom: 16px;
     }
 
-    .titlebox h1 {
+    h1 {
       margin: 0;
-      font-size: 30px;
-      font-weight: 800;
-      color: #0f172a;
-    }
-
-    .titlebox p {
-      margin: 6px 0 0;
-      color: var(--muted);
-      font-size: 14px;
+      font-size: 24px;
     }
 
     .actions {
       display: flex;
-      gap: 10px;
+      gap: 8px;
       flex-wrap: wrap;
     }
 
     button {
-      border: 0;
-      border-radius: 12px;
-      padding: 12px 18px;
-      font-size: 14px;
-      font-weight: 700;
-      cursor: pointer;
-      transition: 0.2s ease;
-      box-shadow: var(--shadow);
-    }
-
-    .btn-primary {
-      background: linear-gradient(135deg, var(--blue) 0%, var(--blue2) 100%);
-      color: #fff;
-    }
-
-    .btn-secondary {
+      padding: 10px 14px;
+      border: 1px solid #cfd4dc;
       background: #fff;
-      color: #0f172a;
-      border: 1px solid var(--line);
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
     }
 
     button:hover {
-      transform: translateY(-1px);
+      background: #f0f3f7;
     }
 
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(4, minmax(180px, 1fr));
-      gap: 14px;
-      margin-bottom: 20px;
-    }
-
-    .card {
-      background: var(--card);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      padding: 18px;
-      border: 1px solid rgba(219, 227, 239, 0.85);
-    }
-
-    .stat-title {
-      color: var(--muted);
+    .status {
       font-size: 13px;
-      margin-bottom: 8px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.3px;
-    }
-
-    .stat-value {
-      font-size: 30px;
-      font-weight: 800;
-      color: #0f172a;
-    }
-
-    .stat-sub {
-      margin-top: 8px;
-      font-size: 13px;
-      color: var(--muted);
-    }
-
-    .section {
-      background: var(--card);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      border: 1px solid rgba(219, 227, 239, 0.85);
-      overflow: hidden;
-    }
-
-    .section-head {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 12px;
-      padding: 18px 20px;
-      border-bottom: 1px solid var(--line);
-      background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
-      flex-wrap: wrap;
-    }
-
-    .section-head h2 {
-      margin: 0;
-      font-size: 20px;
-      font-weight: 800;
-      color: #0f172a;
-    }
-
-    .section-head .small {
-      color: var(--muted);
-      font-size: 13px;
-      font-weight: 600;
+      color: #666;
+      margin-bottom: 12px;
     }
 
     .table-wrap {
       overflow: auto;
-      width: 100%;
+      border: 1px solid #ddd;
+      border-radius: 8px;
     }
 
     table {
       width: 100%;
       border-collapse: collapse;
-      min-width: 1000px;
+      min-width: 950px;
     }
 
     thead th {
-      position: sticky;
-      top: 0;
-      z-index: 1;
-      background: #eef4ff;
-      color: #1e3a8a;
-      font-size: 14px;
-      font-weight: 800;
+      background: #f1f3f6;
+      border-bottom: 1px solid #d8dde6;
+      border-right: 1px solid #d8dde6;
+      padding: 10px;
       text-align: center;
-      padding: 14px 10px;
-      border-bottom: 2px solid #c9d7f2;
-      border-right: 1px solid #dbe3ef;
+      font-size: 14px;
       white-space: nowrap;
     }
 
     thead th:first-child {
       text-align: left;
-      min-width: 280px;
+      min-width: 260px;
     }
 
     tbody td {
-      padding: 12px 10px;
-      border-bottom: 1px solid #edf2f7;
-      border-right: 1px solid #edf2f7;
-      font-size: 14px;
+      padding: 10px;
+      border-bottom: 1px solid #eceff3;
+      border-right: 1px solid #eceff3;
       text-align: center;
-      background: #fff;
+      font-size: 14px;
     }
 
     tbody td:first-child {
       text-align: left;
-      font-weight: 700;
-      color: #111827;
-      min-width: 280px;
+      font-weight: 600;
     }
 
     tbody tr:hover td {
-      background: #f8fbff;
+      background: #fafbfc;
     }
 
-    .toplam-col {
-      background: #f1f8ff !important;
-      font-weight: 800;
-      color: #0f172a;
-    }
-
-    .toplam-head {
-      background: #dbeafe !important;
-      color: #1e3a8a !important;
-    }
-
-    .muted {
-      color: var(--muted);
-    }
-
-    .ok {
-      color: var(--green);
-      font-weight: 700;
-    }
-
-    .err {
-      color: var(--red);
+    .total-head,
+    .total-cell {
+      background: #f7f9fc;
       font-weight: 700;
     }
 
     .empty {
-      padding: 30px 20px;
       text-align: center;
-      color: var(--muted);
-      font-weight: 600;
-    }
-
-    .footer-note {
-      margin-top: 14px;
-      color: var(--muted);
-      font-size: 12px;
-      text-align: right;
-    }
-
-    @media (max-width: 980px) {
-      .grid {
-        grid-template-columns: repeat(2, minmax(180px, 1fr));
-      }
-    }
-
-    @media (max-width: 640px) {
-      .grid {
-        grid-template-columns: 1fr;
-      }
-
-      .titlebox h1 {
-        font-size: 24px;
-      }
+      color: #777;
+      padding: 24px;
     }
   </style>
 </head>
 <body>
-  <div class="wrap">
+  <div class="container">
     <div class="topbar">
-      <div class="titlebox">
-        <h1>Muhasebe Ekranı</h1>
-        <p>Ürün bazlı sipariş matrisi, şube kırılımı ve Excel çıktısı</p>
-      </div>
-
+      <h1>Muhasebe Ekranı</h1>
       <div class="actions">
-        <button class="btn-secondary" id="btnYenile">Yenile</button>
-        <button class="btn-primary" id="btnExcel">Excel'e Aktar</button>
+        <button id="btnRefresh">Yenile</button>
+        <button id="btnExcel">Excel'e Aktar</button>
       </div>
     </div>
 
-    <div class="grid">
-      <div class="card">
-        <div class="stat-title">Toplam Ürün Satırı</div>
-        <div class="stat-value" id="statUrun">0</div>
-        <div class="stat-sub">Matriste görünen ürün satırı</div>
-      </div>
+    <div class="status" id="statusText">Hazır</div>
 
-      <div class="card">
-        <div class="stat-title">Toplam Koli</div>
-        <div class="stat-value" id="statKoli">0</div>
-        <div class="stat-sub">Tüm şubelerin toplamı</div>
-      </div>
-
-      <div class="card">
-        <div class="stat-title">Son Güncelleme</div>
-        <div class="stat-value" id="statSaat" style="font-size:22px;">-</div>
-        <div class="stat-sub">Veri çekme zamanı</div>
-      </div>
-
-      <div class="card">
-        <div class="stat-title">Durum</div>
-        <div class="stat-value" id="statDurum" style="font-size:22px;">Hazır</div>
-        <div class="stat-sub" id="statDurumAlt">Bekleniyor</div>
-      </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>ÜRÜN</th>
+            <th>ALANYA</th>
+            <th>MANAVGAT</th>
+            <th>YOL BOYU</th>
+            <th>MERKEZ</th>
+            <th>GAZİPAŞA</th>
+            <th class="total-head">TOPLAM</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody">
+          <tr>
+            <td colspan="7" class="empty">Veri yükleniyor...</td>
+          </tr>
+        </tbody>
+      </table>
     </div>
-
-    <div class="section">
-      <div class="section-head">
-        <div>
-          <h2>Ürün Bazlı Sipariş Matrisi</h2>
-          <div class="small">ALANYA, MANAVGAT, YOL BOYU, MERKEZ, GAZİPAŞA ve TOPLAM sütunu dahil</div>
-        </div>
-        <div class="small" id="infoSatir">0 satır</div>
-      </div>
-
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>ÜRÜN</th>
-              <th>ALANYA</th>
-              <th>MANAVGAT</th>
-              <th>YOL BOYU</th>
-              <th>MERKEZ</th>
-              <th>GAZİPAŞA</th>
-              <th class="toplam-head">TOPLAM</th>
-            </tr>
-          </thead>
-          <tbody id="matrixBody">
-            <tr>
-              <td colspan="7" class="empty">Veri bekleniyor...</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <div class="footer-note" id="footerNote">Hazır</div>
   </div>
 
   <script>
@@ -355,27 +167,10 @@
 
     let CURRENT_ROWS = [];
 
-    const el = {
-      body: document.getElementById('matrixBody'),
-      statUrun: document.getElementById('statUrun'),
-      statKoli: document.getElementById('statKoli'),
-      statSaat: document.getElementById('statSaat'),
-      statDurum: document.getElementById('statDurum'),
-      statDurumAlt: document.getElementById('statDurumAlt'),
-      infoSatir: document.getElementById('infoSatir'),
-      footerNote: document.getElementById('footerNote'),
-      btnYenile: document.getElementById('btnYenile'),
-      btnExcel: document.getElementById('btnExcel')
-    };
-
-    function escapeHtml(value) {
-      return String(value ?? '')
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#39;');
-    }
+    const tableBody = document.getElementById('tableBody');
+    const statusText = document.getElementById('statusText');
+    const btnRefresh = document.getElementById('btnRefresh');
+    const btnExcel = document.getElementById('btnExcel');
 
     function num(value) {
       if (value === null || value === undefined || value === '') return 0;
@@ -391,32 +186,23 @@
       return isNaN(n) ? 0 : n;
     }
 
-    function fmtNumber(value) {
+    function fmt(value) {
       return new Intl.NumberFormat('tr-TR', {
         minimumFractionDigits: 0,
         maximumFractionDigits: 2
       }).format(num(value));
     }
 
-    function nowText() {
-      return new Intl.DateTimeFormat('tr-TR', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-      }).format(new Date());
+    function escapeHtml(value) {
+      return String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
     }
 
-    function setStatus(main, sub, isError = false) {
-      el.statDurum.textContent = main;
-      el.statDurum.className = isError ? 'err' : 'ok';
-      el.statDurumAlt.textContent = sub || '';
-      el.statSaat.textContent = nowText();
-      el.footerNote.textContent = sub || main;
-    }
-
-    function branchTotal(row) {
+    function totalOfRow(row) {
       return BRANCHES.reduce((sum, branch) => sum + num(row[branch.key]), 0);
     }
 
@@ -463,7 +249,6 @@
       normalized.YOL_BOYU = num(
         row.YOL_BOYU ??
         row['YOL BOYU'] ??
-        row.YolBoyu ??
         row.yolBoyu ??
         row.yol_boyu ??
         row['yol boyu']
@@ -568,7 +353,7 @@
         row[record.branch] = num(row[record.branch]) + num(record.koli);
       }
 
-      return Array.from(map.values()).filter(r => branchTotal(r) > 0);
+      return Array.from(map.values()).filter(r => r.urun && totalOfRow(r) > 0);
     }
 
     function candidateArraysFromData(data) {
@@ -595,10 +380,10 @@
         if (Array.isArray(data[key])) out.push(data[key]);
       }
 
-      for (const [key, value] of Object.entries(data)) {
-        if (Array.isArray(value) && !keys.includes(key)) {
+      for (const value of Object.values(data)) {
+        if (Array.isArray(value)) {
           out.push(value);
-        } else if (value && typeof value === 'object' && !Array.isArray(value)) {
+        } else if (value && typeof value === 'object') {
           for (const inner of Object.values(value)) {
             if (Array.isArray(inner)) out.push(inner);
           }
@@ -616,7 +401,7 @@
         if (!Array.isArray(arr) || !arr.length) continue;
 
         if (arr.some(looksLikeMatrixRow)) {
-          const rows = arr.map(normalizeMatrixRow).filter(r => r.urun && branchTotal(r) > 0);
+          const rows = arr.map(normalizeMatrixRow).filter(r => r.urun && totalOfRow(r) > 0);
           if (rows.length) return rows;
         }
 
@@ -646,26 +431,19 @@
 
       try {
         const summaryPayload = await fetchJson(summaryUrl);
-        let rows = parseRowsFromPayload(summaryPayload);
-
+        const rows = parseRowsFromPayload(summaryPayload);
         if (rows.length) return rows;
-      } catch (e) {
-        console.warn('summary okunamadı:', e);
+      } catch (err) {
+        console.warn('summary okunamadı', err);
       }
 
       const listPayload = await fetchJson(listUrl);
       return parseRowsFromPayload(listPayload);
     }
 
-    function sortRows(rows) {
-      return [...rows].sort((a, b) => {
-        return a.urun.localeCompare(b.urun, 'tr');
-      });
-    }
-
     function renderTable(rows) {
       if (!rows.length) {
-        el.body.innerHTML = `
+        tableBody.innerHTML = `
           <tr>
             <td colspan="7" class="empty">Gösterilecek veri bulunamadı.</td>
           </tr>
@@ -673,41 +451,17 @@
         return;
       }
 
-      el.body.innerHTML = rows.map(row => {
-        const toplam = branchTotal(row);
-
-        return `
-          <tr>
-            <td>${escapeHtml(row.urun)}</td>
-            <td>${fmtNumber(row.ALANYA)}</td>
-            <td>${fmtNumber(row.MANAVGAT)}</td>
-            <td>${fmtNumber(row.YOL_BOYU)}</td>
-            <td>${fmtNumber(row.MERKEZ)}</td>
-            <td>${fmtNumber(row.GAZIPASA)}</td>
-            <td class="toplam-col">${fmtNumber(toplam)}</td>
-          </tr>
-        `;
-      }).join('');
-    }
-
-    function renderStats(rows) {
-      const totalKoli = rows.reduce((sum, row) => sum + branchTotal(row), 0);
-
-      el.statUrun.textContent = fmtNumber(rows.length);
-      el.statKoli.textContent = fmtNumber(totalKoli);
-      el.infoSatir.textContent = `${fmtNumber(rows.length)} satır`;
-    }
-
-    function toExcelRows(rows) {
-      return rows.map(row => ({
-        'ÜRÜN': row.urun,
-        'ALANYA': num(row.ALANYA),
-        'MANAVGAT': num(row.MANAVGAT),
-        'YOL BOYU': num(row.YOL_BOYU),
-        'MERKEZ': num(row.MERKEZ),
-        'GAZİPAŞA': num(row.GAZIPASA),
-        'TOPLAM': branchTotal(row)
-      }));
+      tableBody.innerHTML = rows.map(row => `
+        <tr>
+          <td>${escapeHtml(row.urun)}</td>
+          <td>${fmt(row.ALANYA)}</td>
+          <td>${fmt(row.MANAVGAT)}</td>
+          <td>${fmt(row.YOL_BOYU)}</td>
+          <td>${fmt(row.MERKEZ)}</td>
+          <td>${fmt(row.GAZIPASA)}</td>
+          <td class="total-cell">${fmt(totalOfRow(row))}</td>
+        </tr>
+      `).join('');
     }
 
     function exportExcel() {
@@ -716,50 +470,60 @@
         return;
       }
 
-      const excelRows = toExcelRows(CURRENT_ROWS);
-      const ws = XLSX.utils.json_to_sheet(excelRows);
+      const excelRows = CURRENT_ROWS.map(row => ({
+        'ÜRÜN': row.urun,
+        'ALANYA': num(row.ALANYA),
+        'MANAVGAT': num(row.MANAVGAT),
+        'YOL BOYU': num(row.YOL_BOYU),
+        'MERKEZ': num(row.MERKEZ),
+        'GAZİPAŞA': num(row.GAZIPASA),
+        'TOPLAM': totalOfRow(row)
+      }));
 
+      const ws = XLSX.utils.json_to_sheet(excelRows);
       ws['!cols'] = [
-        { wch: 42 },
-        { wch: 14 },
-        { wch: 14 },
-        { wch: 14 },
-        { wch: 14 },
-        { wch: 14 },
-        { wch: 14 }
+        { wch: 40 },
+        { wch: 12 },
+        { wch: 12 },
+        { wch: 12 },
+        { wch: 12 },
+        { wch: 12 },
+        { wch: 12 }
       ];
 
       const wb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb, ws, 'Muhasebe');
-      XLSX.writeFile(wb, `muhasebe_${new Date().toISOString().slice(0, 10)}.xlsx`);
+      XLSX.writeFile(wb, 'muhasebe_raporu.xlsx');
     }
 
     async function refreshData() {
       try {
-        setStatus('Yükleniyor', 'Veriler çekiliyor...');
-        el.body.innerHTML = `
+        statusText.textContent = 'Veriler yükleniyor...';
+        tableBody.innerHTML = `
           <tr>
-            <td colspan="7" class="empty">Veriler yükleniyor...</td>
+            <td colspan="7" class="empty">Veri yükleniyor...</td>
           </tr>
         `;
 
-        const rows = sortRows(await loadRows());
-        CURRENT_ROWS = rows;
+        const rows = await loadRows();
+        CURRENT_ROWS = rows.sort((a, b) => a.urun.localeCompare(b.urun, 'tr'));
 
-        renderTable(rows);
-        renderStats(rows);
-        setStatus('Hazır', `${rows.length} ürün satırı yüklendi.`);
+        renderTable(CURRENT_ROWS);
+        statusText.textContent = `Hazır • ${CURRENT_ROWS.length} ürün satırı`;
       } catch (error) {
         console.error(error);
         CURRENT_ROWS = [];
-        renderTable([]);
-        renderStats([]);
-        setStatus('Hata', 'Veri çekilirken sorun oluştu: ' + error.message, true);
+        tableBody.innerHTML = `
+          <tr>
+            <td colspan="7" class="empty">Veri alınamadı: ${escapeHtml(error.message)}</td>
+          </tr>
+        `;
+        statusText.textContent = 'Hata oluştu';
       }
     }
 
-    el.btnYenile.addEventListener('click', refreshData);
-    el.btnExcel.addEventListener('click', exportExcel);
+    btnRefresh.addEventListener('click', refreshData);
+    btnExcel.addEventListener('click', exportExcel);
 
     refreshData();
   </script>
