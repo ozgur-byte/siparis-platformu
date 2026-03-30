@@ -589,14 +589,48 @@
       return normalizeToken(value) === "iptal";
     }
 
+    function toTurkeyIsoDate(dateObj) {
+      if (!(dateObj instanceof Date) || Number.isNaN(dateObj.getTime())) return "";
+
+      const parts = new Intl.DateTimeFormat("en-CA", {
+        timeZone: "Europe/Istanbul",
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit"
+      }).formatToParts(dateObj);
+
+      const map = {};
+      parts.forEach(part => {
+        if (part.type !== "literal") {
+          map[part.type] = part.value;
+        }
+      });
+
+      return map.year && map.month && map.day
+        ? `${map.year}-${map.month}-${map.day}`
+        : "";
+    }
+
     function extractIsoDate(value) {
       if (!value) return "";
 
       const text = String(value).trim();
       if (!text) return "";
 
-      if (/^\d{4}-\d{2}-\d{2}/.test(text)) {
-        return text.slice(0, 10);
+      if (/^\d{4}-\d{2}-\d{2}$/.test(text)) {
+        return text;
+      }
+
+      if (/^\d{4}-\d{2}-\d{2}T/.test(text)) {
+        const parsed = new Date(text);
+        const turkeyIso = toTurkeyIsoDate(parsed);
+        return turkeyIso || text.slice(0, 10);
+      }
+
+      if (/^\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}/.test(text)) {
+        const parsed = new Date(text.replace(" ", "T"));
+        const turkeyIso = toTurkeyIsoDate(parsed);
+        return turkeyIso || text.slice(0, 10);
       }
 
       const rawDate = text.split(" ")[0];
@@ -608,13 +642,22 @@
     }
 
     function getOrderDateText(order) {
-      return String(
-        order?.notlar ||
-        order?.kayitTarihi ||
-        order?.guncellemeTarihi ||
-        order?.tarihSaat ||
-        ""
-      ).trim();
+      const adaylar = [
+        order?.siparisTarihi,
+        order?.notlar,
+        order?.aciklama,
+        order?.kayitTarihi,
+        order?.guncellemeTarihi,
+        order?.tarihSaat
+      ];
+
+      for (const aday of adaylar) {
+        if (extractIsoDate(aday)) {
+          return String(aday).trim();
+        }
+      }
+
+      return "";
     }
 
     function expandOrdersToRows(list) {
@@ -644,7 +687,12 @@
         return allRowsCache;
       }
 
-      const res = await fetch(`${APPS_SCRIPT_URL}?action=list`);
+      const url = `${APPS_SCRIPT_URL}?action=list&includeCancelled=true&_ts=${Date.now()}`;
+
+      const res = await fetch(url, {
+        method: "GET",
+        cache: "no-store"
+      });
       const json = await res.json();
 
       if (!json.ok) {
@@ -881,6 +929,10 @@
       if (!selectedDate) {
         setStatus("Tarih seçin.", "error");
         return;
+      }
+
+      if (force) {
+        allRowsCache = null;
       }
 
       setStatus("Veriler getiriliyor...", "loading");
