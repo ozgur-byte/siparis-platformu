@@ -831,55 +831,82 @@
     }
 
     function buildExcelHtml(matrix, selectedDate) {
-      const generatedAt = new Date().toLocaleString("tr-TR");
-      const minimumVisualRows = 40;
-      const visualMatrix = [...matrix];
+      const DAY_NAMES = ["Pazar", "Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma", "Cumartesi"];
 
-      while (visualMatrix.length < minimumVisualRows) {
-        visualMatrix.push({
-          kod: "",
-          ad: "",
-          ALANYA: "",
-          MANAVGAT: "",
-          "YOL BOYU": "",
-          MERKEZ: "",
-          "GAZİPAŞA": "",
-          TOPLAM: "",
-          BOS: "",
-          STOK: "",
-          GELECEK: "",
-          GZP_OLD: ""
-        });
-      }
+      const formatDisplayDate = (iso) => {
+        const text = String(iso || "").trim();
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(text)) return iso;
 
-      const rowsHtml = visualMatrix.map((row, index) => {
-        const excelRowNo = index + 5;
-        const isDataRow = Boolean(row.kod || row.ad);
-        const zebraBg = index % 2 === 0 ? "#ffffff" : "#f8fbff";
-        const codeBg = isDataRow ? (index % 2 === 0 ? "#fff1b8" : "#ffe58f") : "#ffffff";
-        const productBg = isDataRow ? (index % 2 === 0 ? "#fff8db" : "#fff3bf") : "#ffffff";
-        const netAttr = row.kod || row.ad ? `x:fmla="=J${excelRowNo}+K${excelRowNo}-L${excelRowNo}"` : "";
+        const [y, m, d] = text.split("-").map(Number);
+        const dt = new Date(y, m - 1, d);
+        const dayName = DAY_NAMES[dt.getDay()];
+        return `${String(d).padStart(2, "0")}.${String(m).padStart(2, "0")}.${y} ${dayName}`;
+      };
+
+      const displayDate = formatDisplayDate(selectedDate);
+
+      const shipmentDate = (() => {
+        const text = String(selectedDate || "").trim();
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(text)) return "";
+
+        const [y, m, d] = text.split("-").map(Number);
+        const dt = new Date(y, m - 1, d);
+
+        const extraDays = dt.getDay() === 5 ? 3 : 2; // Cuma -> Pazartesi
+        dt.setDate(dt.getDate() + extraDays);
+
+        const yy = dt.getFullYear();
+        const mm = String(dt.getMonth() + 1).padStart(2, "0");
+        const dd = String(dt.getDate()).padStart(2, "0");
+        return formatDisplayDate(`${yy}-${mm}-${dd}`);
+      })();
+
+      const MIN_VISIBLE_ROWS = 42;
+      const fillerCount = Math.max(0, MIN_VISIBLE_ROWS - matrix.length);
+      const rowHeight = 30;
+
+      const rowsHtml = matrix.map((row, index) => {
+        const excelRowNo = index + 4;
+        const zebra = index % 2 === 0 ? "#ffffff" : "#f8fbff";
 
         return `
-          <tr style="height:30px; mso-height-source:userset;">
-            <td style="border:1px solid #94a3b8; background:${codeBg}; color:#7c5a00; font-weight:800; font-size:13pt; text-align:center; padding:6px 8px; height:30px; mso-height-source:userset;">${row.kod || ""}</td>
-            <td style="border:1px solid #94a3b8; background:${productBg}; color:#1f2937; font-weight:800; font-size:13pt; padding:6px 12px; height:30px; mso-height-source:userset;">${row.ad || ""}</td>
-            <td style="border:1px solid #94a3b8; background:${zebraBg}; text-align:center; font-weight:700; font-size:13pt; padding:6px 8px; height:30px; mso-height-source:userset;">${row.ALANYA || ""}</td>
-            <td style="border:1px solid #94a3b8; background:${zebraBg}; text-align:center; font-weight:700; font-size:13pt; padding:6px 8px; height:30px; mso-height-source:userset;">${row.MANAVGAT || ""}</td>
-            <td style="border:1px solid #94a3b8; background:${zebraBg}; text-align:center; font-weight:700; font-size:13pt; padding:6px 8px; height:30px; mso-height-source:userset;">${row["YOL BOYU"] || ""}</td>
-            <td style="border:1px solid #94a3b8; background:${zebraBg}; text-align:center; font-weight:700; font-size:13pt; padding:6px 8px; height:30px; mso-height-source:userset;">${row.MERKEZ || ""}</td>
-            <td style="border:1px solid #94a3b8; background:${zebraBg}; text-align:center; font-weight:700; font-size:13pt; padding:6px 8px; height:30px; mso-height-source:userset;">${row["GAZİPAŞA"] || ""}</td>
-            <td style="border:1px solid #94a3b8; background:#efe7ff; color:#4c1d95; text-align:center; font-weight:900; font-size:13pt; padding:6px 8px; height:30px; mso-height-source:userset;">${row.TOPLAM || ""}</td>
-            <td style="border:1px solid #94a3b8; background:#f8fafc; width:28px; height:30px; mso-height-source:userset;"></td>
-            <td style="border:1px solid #94a3b8; background:#fff4d6; color:#92400e; text-align:center; font-weight:800; font-size:13pt; padding:6px 8px; height:30px; mso-height-source:userset;">${row.STOK || ""}</td>
-            <td style="border:1px solid #94a3b8; background:#e6f6ff; color:#0c4a6e; text-align:center; font-weight:800; font-size:13pt; padding:6px 8px; height:30px; mso-height-source:userset;">${row.GELECEK || ""}</td>
-            <td style="border:1px solid #94a3b8; background:#fff1df; color:#9a3412; text-align:center; font-weight:800; font-size:13pt; padding:6px 8px; height:30px; mso-height-source:userset;">${row.GZP_OLD || ""}</td>
-            <td ${netAttr}
-                style="border:1px solid #94a3b8; background:#dcfce7; color:#166534; text-align:center; font-weight:900; font-size:13pt; padding:6px 8px; height:30px; mso-height-source:userset;">
+          <tr style="height:${rowHeight}px; mso-height-source:userset;">
+            <td style="border:1px solid #1f2937; font-weight:800; background:#fff4cc; text-align:center; vertical-align:middle; height:${rowHeight}px;">${row.kod || ""}</td>
+            <td style="border:1px solid #1f2937; font-weight:800; background:#fff9e8; vertical-align:middle; height:${rowHeight}px;">${row.ad || ""}</td>
+            <td style="border:1px solid #1f2937; text-align:center; font-weight:800; background:${zebra}; vertical-align:middle; height:${rowHeight}px;">${row.ALANYA || ""}</td>
+            <td style="border:1px solid #1f2937; text-align:center; font-weight:800; background:${zebra}; vertical-align:middle; height:${rowHeight}px;">${row.MANAVGAT || ""}</td>
+            <td style="border:1px solid #1f2937; text-align:center; font-weight:800; background:${zebra}; vertical-align:middle; height:${rowHeight}px;">${row["YOL BOYU"] || ""}</td>
+            <td style="border:1px solid #1f2937; text-align:center; font-weight:800; background:${zebra}; vertical-align:middle; height:${rowHeight}px;">${row.MERKEZ || ""}</td>
+            <td style="border:1px solid #1f2937; text-align:center; font-weight:800; background:${zebra}; vertical-align:middle; height:${rowHeight}px;">${row["GAZİPAŞA"] || ""}</td>
+            <td style="border:1px solid #1f2937; text-align:center; font-weight:900; background:#ede9fe; color:#4338ca; vertical-align:middle; height:${rowHeight}px;">${row.TOPLAM || ""}</td>
+            <td style="border:1px solid #1f2937; background:#eef2f7; height:${rowHeight}px;"></td>
+            <td style="border:1px solid #1f2937; text-align:center; font-weight:800; background:#fff7cc; vertical-align:middle; height:${rowHeight}px;">${row.STOK || ""}</td>
+            <td style="border:1px solid #1f2937; text-align:center; font-weight:800; background:#dff2ff; vertical-align:middle; height:${rowHeight}px;">${row.GELECEK || ""}</td>
+            <td style="border:1px solid #1f2937; text-align:center; font-weight:800; background:#fff7cc; vertical-align:middle; height:${rowHeight}px;">${row.GZP_OLD || ""}</td>
+            <td x:fmla="=J${excelRowNo}+K${excelRowNo}-L${excelRowNo}"
+                style="border:1px solid #1f2937; text-align:center; font-weight:900; background:#dcfce7; color:#166534; vertical-align:middle; height:${rowHeight}px;">
             </td>
           </tr>
         `;
       }).join("");
+
+      const fillerRowsHtml = Array.from({ length: fillerCount }, () => `
+        <tr style="height:${rowHeight}px; mso-height-source:userset;">
+          <td style="border:1px solid #cbd5e1; height:${rowHeight}px;"></td>
+          <td style="border:1px solid #cbd5e1; height:${rowHeight}px;"></td>
+          <td style="border:1px solid #cbd5e1; height:${rowHeight}px;"></td>
+          <td style="border:1px solid #cbd5e1; height:${rowHeight}px;"></td>
+          <td style="border:1px solid #cbd5e1; height:${rowHeight}px;"></td>
+          <td style="border:1px solid #cbd5e1; height:${rowHeight}px;"></td>
+          <td style="border:1px solid #cbd5e1; height:${rowHeight}px;"></td>
+          <td style="border:1px solid #cbd5e1; height:${rowHeight}px;"></td>
+          <td style="border:1px solid #cbd5e1; height:${rowHeight}px;"></td>
+          <td style="border:1px solid #cbd5e1; height:${rowHeight}px;"></td>
+          <td style="border:1px solid #cbd5e1; height:${rowHeight}px;"></td>
+          <td style="border:1px solid #cbd5e1; height:${rowHeight}px;"></td>
+          <td style="border:1px solid #cbd5e1; height:${rowHeight}px;"></td>
+        </tr>
+      `).join("");
 
       return `
         <html xmlns:o="urn:schemas-microsoft-com:office:office"
@@ -887,24 +914,21 @@
               xmlns="http://www.w3.org/TR/REC-html40">
         <head>
           <meta charset="UTF-8">
-          <style>
-            body, table, td, th, div, span {
-              font-family: 'Aptos Narrow', Aptos, Calibri, Arial, sans-serif;
-            }
-          </style>
           <!--[if gte mso 9]>
           <xml>
             <x:ExcelWorkbook>
               <x:ExcelWorksheets>
                 <x:ExcelWorksheet>
-                  <x:Name>Dağılım</x:Name>
+                  <x:Name>Sipariş Dağılımı</x:Name>
                   <x:WorksheetOptions>
                     <x:DisplayGridlines/>
-                    <x:FreezePanes/>
-                    <x:FrozenNoSplit/>
-                    <x:SplitHorizontal>4</x:SplitHorizontal>
-                    <x:TopRowBottomPane>4</x:TopRowBottomPane>
-                    <x:FitToPage/>
+                    <x:Print>
+                      <x:FitWidth>1</x:FitWidth>
+                      <x:FitHeight>0</x:FitHeight>
+                      <x:ValidPrinterInfo/>
+                    </x:Print>
+                    <x:ProtectObjects>False</x:ProtectObjects>
+                    <x:ProtectScenarios>False</x:ProtectScenarios>
                   </x:WorksheetOptions>
                 </x:ExcelWorksheet>
               </x:ExcelWorksheets>
@@ -912,34 +936,57 @@
           </xml>
           <![endif]-->
         </head>
-        <body style="margin:0; padding:14px; background:#f5f7fb;">
-          <table border="0" cellpadding="0" cellspacing="0" style="border-collapse:collapse; table-layout:fixed; font-family:'Aptos Narrow', Aptos, Calibri, Arial, sans-serif; font-size:13pt; color:#1f2937; width:100%;">
-            <tr style="height:34px; mso-height-source:userset;">
-              <td colspan="13" style="background:#163b7a; color:#ffffff; font-size:22pt; font-weight:900; letter-spacing:.2px; padding:10px 18px; border:1px solid #94a3b8; height:34px; mso-height-source:userset;">
-                ALANYA TAVUKÇULUK - SİPARİŞ DAĞILIMI
+        <body>
+          <table border="0" cellpadding="0" cellspacing="0" style="border-collapse:collapse; font-family:'Aptos Narrow', Aptos, Calibri, Arial, sans-serif; font-size:14pt; table-layout:fixed; width:1750px;">
+            <colgroup>
+              <col style="width:95px;">
+              <col style="width:360px;">
+              <col style="width:115px;">
+              <col style="width:115px;">
+              <col style="width:115px;">
+              <col style="width:115px;">
+              <col style="width:115px;">
+              <col style="width:120px;">
+              <col style="width:42px;">
+              <col style="width:105px;">
+              <col style="width:105px;">
+              <col style="width:105px;">
+              <col style="width:110px;">
+            </colgroup>
+
+            <tr style="height:${rowHeight}px; mso-height-source:userset;">
+              <td colspan="13" style="border:1px solid #1f2937; background:#0f2f57; color:#ffffff; font-size:16pt; font-weight:900; text-align:center; vertical-align:middle; height:${rowHeight}px; padding:0 12px;">
+                Alanya Tavukçuluk - Sipariş Dağılımı
               </td>
             </tr>
-            <tr style="height:30px; mso-height-source:userset;">
-              <td colspan="13" style="background:#eaf2ff; color:#1e3a8a; font-size:13pt; font-weight:700; padding:8px 18px; border:1px solid #94a3b8; height:30px; mso-height-source:userset;">
-                Tarih: ${selectedDate} &nbsp;&nbsp;•&nbsp;&nbsp; Oluşturulma: ${generatedAt}
+
+            <tr style="height:${rowHeight}px; mso-height-source:userset;">
+              <td colspan="6" style="border:1px solid #1f2937; background:#eaf2ff; color:#1e3a8a; font-size:11pt; font-weight:800; text-align:center; vertical-align:middle; height:${rowHeight}px; padding:0 12px;">
+                Sipariş Verilen Tarih: ${displayDate}
+              </td>
+              <td colspan="7" style="border:1px solid #1f2937; background:#eefcf3; color:#166534; font-size:11pt; font-weight:800; text-align:center; vertical-align:middle; height:${rowHeight}px; padding:0 12px;">
+                Sevkiyat Günü: ${shipmentDate}
               </td>
             </tr>
-            <tr style="height:30px; mso-height-source:userset;">
-              <td style="border:1px solid #94a3b8; background:#facc15; color:#713f12; font-weight:900; font-size:14pt; text-align:center; width:92px; padding:6px 8px; height:30px; mso-height-source:userset;">KOD</td>
-              <td style="border:1px solid #94a3b8; background:#fde68a; color:#713f12; font-weight:900; font-size:14pt; width:340px; padding:6px 14px; height:30px; mso-height-source:userset;">ÜRÜN ADI</td>
-              <td style="border:1px solid #94a3b8; background:#dbeafe; color:#1d4ed8; font-weight:900; font-size:14pt; text-align:center; width:112px; padding:6px 8px; height:30px; mso-height-source:userset;">ALANYA</td>
-              <td style="border:1px solid #94a3b8; background:#dbeafe; color:#1d4ed8; font-weight:900; font-size:14pt; text-align:center; width:112px; padding:6px 8px; height:30px; mso-height-source:userset;">MANAVGAT</td>
-              <td style="border:1px solid #94a3b8; background:#dbeafe; color:#1d4ed8; font-weight:900; font-size:14pt; text-align:center; width:112px; padding:6px 8px; height:30px; mso-height-source:userset;">YOL BOYU</td>
-              <td style="border:1px solid #94a3b8; background:#dbeafe; color:#1d4ed8; font-weight:900; font-size:14pt; text-align:center; width:112px; padding:6px 8px; height:30px; mso-height-source:userset;">MERKEZ</td>
-              <td style="border:1px solid #94a3b8; background:#dbeafe; color:#1d4ed8; font-weight:900; font-size:14pt; text-align:center; width:112px; padding:6px 8px; height:30px; mso-height-source:userset;">GAZİPAŞA</td>
-              <td style="border:1px solid #94a3b8; background:#ede9fe; color:#5b21b6; font-weight:900; font-size:14pt; text-align:center; width:112px; padding:6px 8px; height:30px; mso-height-source:userset;">TOPLAM</td>
-              <td style="border:1px solid #94a3b8; background:#f8fafc; width:28px; height:30px; mso-height-source:userset;"></td>
-              <td style="border:1px solid #94a3b8; background:#fef3c7; color:#92400e; font-weight:900; font-size:14pt; text-align:center; width:100px; padding:6px 8px; height:30px; mso-height-source:userset;">STOK</td>
-              <td style="border:1px solid #94a3b8; background:#e0f2fe; color:#075985; font-weight:900; font-size:14pt; text-align:center; width:100px; padding:6px 8px; height:30px; mso-height-source:userset;">GELECEK</td>
-              <td style="border:1px solid #94a3b8; background:#ffedd5; color:#9a3412; font-weight:900; font-size:14pt; text-align:center; width:100px; padding:6px 8px; height:30px; mso-height-source:userset;">GZP_OLD</td>
-              <td style="border:1px solid #94a3b8; background:#dcfce7; color:#166534; font-weight:900; font-size:14pt; text-align:center; width:100px; padding:6px 8px; height:30px; mso-height-source:userset;">NET</td>
+
+            <tr style="height:${rowHeight}px; mso-height-source:userset;">
+              <td style="border:1px solid #1f2937; background:#ffe8a3; color:#7c5c00; font-weight:900; text-align:center; vertical-align:middle; height:${rowHeight}px;"></td>
+              <td style="border:1px solid #1f2937; background:#fff4cc; color:#7c5c00; font-weight:900; vertical-align:middle; height:${rowHeight}px;"></td>
+              <td style="border:1px solid #1f2937; background:#dbeafe; color:#1e3a8a; font-weight:900; text-align:center; vertical-align:middle; height:${rowHeight}px;">ALANYA</td>
+              <td style="border:1px solid #1f2937; background:#dbeafe; color:#1e3a8a; font-weight:900; text-align:center; vertical-align:middle; height:${rowHeight}px;">MANAVGAT</td>
+              <td style="border:1px solid #1f2937; background:#dbeafe; color:#1e3a8a; font-weight:900; text-align:center; vertical-align:middle; height:${rowHeight}px;">YOL BOYU</td>
+              <td style="border:1px solid #1f2937; background:#dbeafe; color:#1e3a8a; font-weight:900; text-align:center; vertical-align:middle; height:${rowHeight}px;">MERKEZ</td>
+              <td style="border:1px solid #1f2937; background:#dbeafe; color:#1e3a8a; font-weight:900; text-align:center; vertical-align:middle; height:${rowHeight}px;">GAZİPAŞA</td>
+              <td style="border:1px solid #1f2937; background:#ede9fe; color:#4338ca; font-weight:900; text-align:center; vertical-align:middle; height:${rowHeight}px;">TOPLAM</td>
+              <td style="border:1px solid #1f2937; background:#eef2f7; vertical-align:middle; height:${rowHeight}px;"></td>
+              <td style="border:1px solid #1f2937; background:#fef3c7; color:#92400e; font-weight:900; text-align:center; vertical-align:middle; height:${rowHeight}px;">STOK</td>
+              <td style="border:1px solid #1f2937; background:#dff2ff; color:#1e3a8a; font-weight:900; text-align:center; vertical-align:middle; height:${rowHeight}px;">GELECEK</td>
+              <td style="border:1px solid #1f2937; background:#fef3c7; color:#92400e; font-weight:900; text-align:center; vertical-align:middle; height:${rowHeight}px;">GZP_OLD</td>
+              <td style="border:1px solid #1f2937; background:#dcfce7; color:#166534; font-weight:900; text-align:center; vertical-align:middle; height:${rowHeight}px;">NET</td>
             </tr>
+
             ${rowsHtml}
+            ${fillerRowsHtml}
           </table>
         </body>
         </html>
