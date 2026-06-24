@@ -475,7 +475,7 @@
     </div>
 
     <div class="footer-note">
-      Seçilen tarihe göre özet gösterilir. Excel çıktısında ALANYA + MANAVGAT + YOL BOYU + MERKEZ + GAZİPAŞA + CEZAEVİ = TOPLAM hesabı otomatik yapılır.
+      Seçilen tarihe göre özet gösterilir. Excel çıktısında ALANYA + MANAVGAT + YOL BOYU + MERKEZ + GAZİPAŞA + CEZAEVİ = TOPLAM hesabı Excel formülüyle otomatik yapılır.
     </div>
   </div>
 
@@ -486,9 +486,7 @@
       "Metin İlhan",
       "Çetin Orhan",
       "Orhan Sezen",
-      "Fatih Özçelik",
-      "Merkez",
-      "Cezaevi"
+      "Fatih Özçelik"
     ];
 
     const URUN_LISTESI = [
@@ -540,8 +538,10 @@
     const REP_TO_BRANCH = {
       "Metin İlhan": "ALANYA",
       "Çetin Orhan": "MANAVGAT",
+      "Çetin Orhan Manavgat": "MANAVGAT",
       "Orhan Sezen": "YOL BOYU",
       "Fatih Özçelik": "GAZİPAŞA",
+      "Gazipaşa": "GAZİPAŞA",
       "Merkez": "MERKEZ",
       "Cezaevi": "CEZAEVİ"
     };
@@ -671,6 +671,17 @@
       return "";
     }
 
+    function normalizeRepForTracking(value) {
+      const rep = String(value || "").trim();
+      if (rep === "Çetin Orhan Manavgat") return "Çetin Orhan";
+      if (rep === "Gazipaşa") return "Fatih Özçelik";
+      return rep;
+    }
+
+    function isTrackedPlasiyer(value) {
+      return PLASIYERLER.includes(normalizeRepForTracking(value));
+    }
+
     function expandOrdersToRows(list) {
       return (Array.isArray(list) ? list : [])
         .filter(order => order && order.kayitNo && !isCancelledStatus(order.durum))
@@ -682,7 +693,7 @@
           return products
             .map(item => ({
               kayitNo: order.kayitNo || "",
-              plasiyer: String(order.plasiyer || "").trim(),
+              plasiyer: normalizeRepForTracking(order.plasiyer),
               durum: String(order.durum || "Aktif").trim(),
               tarihSaat,
               siparisTarihi,
@@ -730,15 +741,16 @@
     }
 
     function renderSummaryCards(rows) {
+      const trackedRows = rows.filter(row => isTrackedPlasiyer(row.plasiyer));
       const enteredSet = new Set(
-        rows.map(x => String(x.plasiyer || "").trim()).filter(Boolean)
+        trackedRows.map(x => normalizeRepForTracking(x.plasiyer)).filter(Boolean)
       );
 
       const entered = PLASIYERLER.filter(x => enteredSet.has(x));
       const notEntered = PLASIYERLER.filter(x => !enteredSet.has(x));
-      const qty = rows.reduce((sum, x) => sum + Number(x.miktar || 0), 0);
+      const qty = trackedRows.reduce((sum, x) => sum + Number(x.miktar || 0), 0);
 
-      totalRows.textContent = rows.length;
+      totalRows.textContent = trackedRows.length;
       enteredCount.textContent = entered.length;
       notEnteredCount.textContent = notEntered.length;
       totalQty.textContent = qty;
@@ -749,9 +761,10 @@
 
     function renderRepSummary(rows) {
       const map = {};
+      const trackedRows = rows.filter(row => isTrackedPlasiyer(row.plasiyer));
 
-      rows.forEach(row => {
-        const rep = String(row.plasiyer || "").trim();
+      trackedRows.forEach(row => {
+        const rep = normalizeRepForTracking(row.plasiyer);
         if (!rep) return;
 
         if (!map[rep]) {
@@ -828,18 +841,8 @@
         targetRow[col] = current + miktar;
       });
 
-      matrix.forEach(row => {
-        const toplam =
-          Number(row.ALANYA || 0) +
-          Number(row.MANAVGAT || 0) +
-          Number(row["YOL BOYU"] || 0) +
-          Number(row.MERKEZ || 0) +
-          Number(row["GAZİPAŞA"] || 0) +
-          Number(row["CEZAEVİ"] || 0);
-
-        row.TOPLAM = toplam > 0 ? toplam : "";
-      });
-
+      // TOPLAM kolonu Excel içinde formül olarak hesaplanır.
+      // Böylece Excel'de ALANYA/MANAVGAT/YOL BOYU/MERKEZ/GAZİPAŞA/CEZAEVİ hücreleri manuel değişirse TOPLAM da otomatik güncellenir.
       return matrix;
     }
 
@@ -880,25 +883,33 @@
 
       const rowsHtml = matrix.map((row, index) => {
         const excelRowNo = index + 4;
-        const zebra = index % 2 === 0 ? "#ffffff" : "#f8fbff";
+        const branchBg = "#eaf2ff";
+        const totalBg = "#ede9fe";
+        const blankBg = "#eef2f7";
+        const stockBg = "#fff4cc";
+        const gelecekBg = "#dff2ff";
+        const gzpOldBg = "#ffe9d6";
+        const netBg = "#dcfce7";
 
         return `
           <tr style="height:${rowHeight}px; mso-height-source:userset;">
             <td style="border:1px solid #1f2937; font-weight:800; background:#fff4cc; text-align:center; vertical-align:middle; height:${rowHeight}px;">${row.kod || ""}</td>
             <td style="border:1px solid #1f2937; font-weight:800; background:#fff9e8; vertical-align:middle; height:${rowHeight}px;">${row.ad || ""}</td>
-            <td style="border:1px solid #1f2937; text-align:center; font-weight:800; background:${zebra}; vertical-align:middle; height:${rowHeight}px;">${row.ALANYA || ""}</td>
-            <td style="border:1px solid #1f2937; text-align:center; font-weight:800; background:${zebra}; vertical-align:middle; height:${rowHeight}px;">${row.MANAVGAT || ""}</td>
-            <td style="border:1px solid #1f2937; text-align:center; font-weight:800; background:${zebra}; vertical-align:middle; height:${rowHeight}px;">${row["YOL BOYU"] || ""}</td>
-            <td style="border:1px solid #1f2937; text-align:center; font-weight:800; background:${zebra}; vertical-align:middle; height:${rowHeight}px;">${row.MERKEZ || ""}</td>
-            <td style="border:1px solid #1f2937; text-align:center; font-weight:800; background:${zebra}; vertical-align:middle; height:${rowHeight}px;">${row["GAZİPAŞA"] || ""}</td>
-            <td style="border:1px solid #1f2937; text-align:center; font-weight:800; background:${zebra}; vertical-align:middle; height:${rowHeight}px;">${row["CEZAEVİ"] || ""}</td>
-            <td style="border:1px solid #1f2937; text-align:center; font-weight:900; background:#ede9fe; color:#4338ca; vertical-align:middle; height:${rowHeight}px;">${row.TOPLAM || ""}</td>
-            <td style="border:1px solid #1f2937; background:#eef2f7; height:${rowHeight}px;"></td>
-            <td style="border:1px solid #1f2937; text-align:center; font-weight:800; background:#fff7cc; vertical-align:middle; height:${rowHeight}px;">${row.STOK || ""}</td>
-            <td style="border:1px solid #1f2937; text-align:center; font-weight:800; background:#dff2ff; vertical-align:middle; height:${rowHeight}px;">${row.GELECEK || ""}</td>
-            <td style="border:1px solid #1f2937; text-align:center; font-weight:800; background:#fff7cc; vertical-align:middle; height:${rowHeight}px;">${row.GZP_OLD || ""}</td>
-            <td x:fmla="=K${excelRowNo}+L${excelRowNo}-M${excelRowNo}"
-                style="border:1px solid #1f2937; text-align:center; font-weight:900; background:#dcfce7; color:#166534; vertical-align:middle; height:${rowHeight}px;">
+            <td style="border:1px solid #1f2937; text-align:center; font-weight:800; background:${branchBg}; vertical-align:middle; height:${rowHeight}px;">${row.ALANYA || ""}</td>
+            <td style="border:1px solid #1f2937; text-align:center; font-weight:800; background:${branchBg}; vertical-align:middle; height:${rowHeight}px;">${row.MANAVGAT || ""}</td>
+            <td style="border:1px solid #1f2937; text-align:center; font-weight:800; background:${branchBg}; vertical-align:middle; height:${rowHeight}px;">${row["YOL BOYU"] || ""}</td>
+            <td style="border:1px solid #1f2937; text-align:center; font-weight:800; background:${branchBg}; vertical-align:middle; height:${rowHeight}px;">${row.MERKEZ || ""}</td>
+            <td style="border:1px solid #1f2937; text-align:center; font-weight:800; background:${branchBg}; vertical-align:middle; height:${rowHeight}px;">${row["GAZİPAŞA"] || ""}</td>
+            <td style="border:1px solid #1f2937; text-align:center; font-weight:800; background:${branchBg}; vertical-align:middle; height:${rowHeight}px;">${row["CEZAEVİ"] || ""}</td>
+            <td x:fmla="=IF(SUM(C${excelRowNo}:H${excelRowNo})=0,&quot;&quot;,SUM(C${excelRowNo}:H${excelRowNo}))"
+                style="border:1px solid #1f2937; text-align:center; font-weight:900; background:${totalBg}; color:#4338ca; vertical-align:middle; height:${rowHeight}px;">
+            </td>
+            <td style="border:1px solid #1f2937; background:${blankBg}; height:${rowHeight}px;"></td>
+            <td style="border:1px solid #1f2937; text-align:center; font-weight:800; background:${stockBg}; vertical-align:middle; height:${rowHeight}px;">${row.STOK || ""}</td>
+            <td style="border:1px solid #1f2937; text-align:center; font-weight:800; background:${gelecekBg}; vertical-align:middle; height:${rowHeight}px;">${row.GELECEK || ""}</td>
+            <td style="border:1px solid #1f2937; text-align:center; font-weight:800; background:${gzpOldBg}; vertical-align:middle; height:${rowHeight}px;">${row.GZP_OLD || ""}</td>
+            <td x:fmla="=IF(SUM(K${excelRowNo}:M${excelRowNo})=0,&quot;&quot;,K${excelRowNo}+L${excelRowNo}-M${excelRowNo})"
+                style="border:1px solid #1f2937; text-align:center; font-weight:900; background:${netBg}; color:#166534; vertical-align:middle; height:${rowHeight}px;">
             </td>
           </tr>
         `;
@@ -906,20 +917,20 @@
 
       const fillerRowsHtml = Array.from({ length: fillerCount }, () => `
         <tr style="height:${rowHeight}px; mso-height-source:userset;">
-          <td style="border:1px solid #cbd5e1; height:${rowHeight}px;"></td>
-          <td style="border:1px solid #cbd5e1; height:${rowHeight}px;"></td>
-          <td style="border:1px solid #cbd5e1; height:${rowHeight}px;"></td>
-          <td style="border:1px solid #cbd5e1; height:${rowHeight}px;"></td>
-          <td style="border:1px solid #cbd5e1; height:${rowHeight}px;"></td>
-          <td style="border:1px solid #cbd5e1; height:${rowHeight}px;"></td>
-          <td style="border:1px solid #cbd5e1; height:${rowHeight}px;"></td>
-          <td style="border:1px solid #cbd5e1; height:${rowHeight}px;"></td>
-          <td style="border:1px solid #cbd5e1; height:${rowHeight}px;"></td>
-          <td style="border:1px solid #cbd5e1; height:${rowHeight}px;"></td>
-          <td style="border:1px solid #cbd5e1; height:${rowHeight}px;"></td>
-          <td style="border:1px solid #cbd5e1; height:${rowHeight}px;"></td>
-          <td style="border:1px solid #cbd5e1; height:${rowHeight}px;"></td>
-          <td style="border:1px solid #cbd5e1; height:${rowHeight}px;"></td>
+          <td style="border:1px solid #cbd5e1; background:#fff4cc; height:${rowHeight}px;"></td>
+          <td style="border:1px solid #cbd5e1; background:#fff9e8; height:${rowHeight}px;"></td>
+          <td style="border:1px solid #cbd5e1; background:#eaf2ff; height:${rowHeight}px;"></td>
+          <td style="border:1px solid #cbd5e1; background:#eaf2ff; height:${rowHeight}px;"></td>
+          <td style="border:1px solid #cbd5e1; background:#eaf2ff; height:${rowHeight}px;"></td>
+          <td style="border:1px solid #cbd5e1; background:#eaf2ff; height:${rowHeight}px;"></td>
+          <td style="border:1px solid #cbd5e1; background:#eaf2ff; height:${rowHeight}px;"></td>
+          <td style="border:1px solid #cbd5e1; background:#eaf2ff; height:${rowHeight}px;"></td>
+          <td style="border:1px solid #cbd5e1; background:#ede9fe; height:${rowHeight}px;"></td>
+          <td style="border:1px solid #cbd5e1; background:#eef2f7; height:${rowHeight}px;"></td>
+          <td style="border:1px solid #cbd5e1; background:#fff4cc; height:${rowHeight}px;"></td>
+          <td style="border:1px solid #cbd5e1; background:#dff2ff; height:${rowHeight}px;"></td>
+          <td style="border:1px solid #cbd5e1; background:#ffe9d6; height:${rowHeight}px;"></td>
+          <td style="border:1px solid #cbd5e1; background:#dcfce7; height:${rowHeight}px;"></td>
         </tr>
       `).join("");
 
@@ -951,8 +962,8 @@
           </xml>
           <![endif]-->
         </head>
-        <body>
-          <table border="0" cellpadding="0" cellspacing="0" style="border-collapse:collapse; font-family:'Aptos Narrow', Aptos, Calibri, Arial, sans-serif; font-size:14pt; table-layout:fixed; width:1865px;">
+        <body style="font-family:'Arial Narrow', Arial, sans-serif;">
+          <table border="0" cellpadding="0" cellspacing="0" style="border-collapse:collapse; font-family:'Arial Narrow', Arial, sans-serif; font-size:14pt; table-layout:fixed; width:1865px;">
             <colgroup>
               <col style="width:95px;">
               <col style="width:360px;">
@@ -996,9 +1007,9 @@
               <td style="border:1px solid #1f2937; background:#dbeafe; color:#1e3a8a; font-weight:900; text-align:center; vertical-align:middle; height:${rowHeight}px;">CEZAEVİ</td>
               <td style="border:1px solid #1f2937; background:#ede9fe; color:#4338ca; font-weight:900; text-align:center; vertical-align:middle; height:${rowHeight}px;">TOPLAM</td>
               <td style="border:1px solid #1f2937; background:#eef2f7; vertical-align:middle; height:${rowHeight}px;"></td>
-              <td style="border:1px solid #1f2937; background:#fef3c7; color:#92400e; font-weight:900; text-align:center; vertical-align:middle; height:${rowHeight}px;">STOK</td>
+              <td style="border:1px solid #1f2937; background:#fff4cc; color:#92400e; font-weight:900; text-align:center; vertical-align:middle; height:${rowHeight}px;">STOK</td>
               <td style="border:1px solid #1f2937; background:#dff2ff; color:#1e3a8a; font-weight:900; text-align:center; vertical-align:middle; height:${rowHeight}px;">GELECEK</td>
-              <td style="border:1px solid #1f2937; background:#fef3c7; color:#92400e; font-weight:900; text-align:center; vertical-align:middle; height:${rowHeight}px;">GZP_OLD</td>
+              <td style="border:1px solid #1f2937; background:#ffe9d6; color:#9a3412; font-weight:900; text-align:center; vertical-align:middle; height:${rowHeight}px;">GZP_OLD</td>
               <td style="border:1px solid #1f2937; background:#dcfce7; color:#166534; font-weight:900; text-align:center; vertical-align:middle; height:${rowHeight}px;">NET</td>
             </tr>
 
