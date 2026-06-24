@@ -482,15 +482,24 @@
       { id: '19179-1', code: '19179', name: 'DÖKME AÇIK' },
       { id: '19173-1', code: '19173', name: 'POŞETLİ' },
       { id: '33787-1', code: '33787', name: 'MAKSİ' },
+      { id: '19380-1', code: '19380', name: 'KOLİ 12 NUMARA' },
+      { id: '19381-1', code: '19381', name: 'POŞETLİ 12 NUMARA' },
+      { id: '19385-1', code: '19385', name: 'KOLİ 13 NUMARA' },
+      { id: '19386-1', code: '19386', name: 'POŞETLİ 13 NUMARA' },
       { id: '25338-1', code: '25338', name: 'POŞETLİ 14' },
       { id: '19354-1', code: '19354', name: 'DÖKME BAGET' },
       { id: '19352-1', code: '19352', name: 'DÖKME KALÇALI BUT' },
+      { id: '19027-1', code: '19027', name: 'DÖKME ÇATAL BUT' },
       { id: '19355-1', code: '19355', name: 'DÖKME BUT İNCİK' },
       { id: '4924-1', code: '4924', name: 'DÖKME KEMİKSİZ BUT' },
-      { id: '33836-1', code: '33836', name: 'DÖKME DERİLİ LOKUMSUZ BONFİLE' },
+      { id: '24483-1', code: '24483', name: 'DÖKME DERİLİ LOKUMSUZ BONFİLE' },
+      { id: '19363-1', code: '19363', name: 'DÖKME DERİLİ BONFİLE' },
       { id: '19362-1', code: '19362', name: 'DÖKME BONFİLE' },
+      { id: '28857-1', code: '28857', name: 'DÖKME BÖLÜNMEMİŞ BONFİLE' },
       { id: '19360-1', code: '19360', name: 'DÖKME KOVAN GÖĞÜS' },
       { id: '19361-1', code: '19361', name: 'DÖKME MUZ GÖĞÜS' },
+      { id: '19358-1', code: '19358', name: 'DÖKME IZGARA TAVA' },
+      { id: '24479-1', code: '24479', name: 'DÖKME KELEBEK' },
       { id: '19367-1', code: '19367', name: 'DÖKME ÇORBALIK' },
       { id: '19351-1', code: '19351', name: 'DÖKME IZGARALIK KANAT' },
       { id: '19349-1', code: '19349', name: 'DÖKME SPESİYAL KANAT' },
@@ -504,7 +513,7 @@
       { id: '36138-1', code: '36138', name: 'TABAKLI IZGARA KANAT' },
       { id: '19110-1', code: '19110', name: 'TABAKLI BONFİLE' },
       { id: '25339-1', code: '25339', name: 'TABAKLI CİĞER' },
-      { id: '19320-1', code: '19320', name: 'TABAKLI TAŞLIK' },
+      { id: '23479-1', code: '23479', name: 'TABAKLI TAŞLIK' },
       { id: '31343-1', code: '31343', name: 'TABAKLI YÜREK' },
       { id: '2812318-1', code: '2812318', name: 'AL-TAV UÇLU KANAT' },
       { id: '2812302-1', code: '2812302', name: 'AL-TAV BONFİLE' },
@@ -512,12 +521,11 @@
       { id: '2812305-1', code: '2812305', name: 'AL-TAV ÇORBALIK' },
       { id: '2812310-1', code: '2812310', name: 'AL-TAV KALÇALI BUT' },
       { id: '2812303-1', code: '2812303', name: 'AL-TAV BUT İNCİK' },
-      { id: '2812306-1', code: '2812306', name: 'AL-TAV DÖNERLİK BONFİLE' },
-      { id: '19027-1', code: '19027', name: 'ŞENPİLİÇ ÇATAL BUT' }
+      { id: '2812306-1', code: '2812306', name: 'AL-TAV DÖNERLİK BONFİLE' }
     ];
 
     const HIGH_LIMIT_EXCLUDED_CODES = ['19179', '19173'];
-    const PLASIYERS = ['Metin İlhan', 'Çetin Orhan Manavgat', 'Orhan Sezen', 'Merkez', 'Gazipaşa'];
+    const PLASIYERS = ['Metin İlhan', 'Çetin Orhan', 'Orhan Sezen', 'Fatih Özçelik', 'Merkez', 'Cezaevi'];
 
     const loginScreen = document.getElementById('loginScreen');
     const appScreen = document.getElementById('appScreen');
@@ -732,6 +740,7 @@
         .map(([id, qty]) => {
           const product = getProductById(id);
           return {
+            kod: product ? product.code : '',
             urun: product ? product.name : id,
             miktar: Number(qty)
           };
