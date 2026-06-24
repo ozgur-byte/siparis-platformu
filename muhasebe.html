@@ -475,7 +475,7 @@
     </div>
 
     <div class="footer-note">
-      Seçilen tarihe göre özet gösterilir. Excel çıktısında ALANYA + MANAVGAT + YOL BOYU + MERKEZ + GAZİPAŞA = TOPLAM hesabı otomatik yapılır.
+      Seçilen tarihe göre özet gösterilir. Excel çıktısında ALANYA + MANAVGAT + YOL BOYU + MERKEZ + GAZİPAŞA + CEZAEVİ = TOPLAM hesabı otomatik yapılır.
     </div>
   </div>
 
@@ -484,23 +484,33 @@
 
     const PLASIYERLER = [
       "Metin İlhan",
-      "Çetin Orhan Manavgat",
+      "Çetin Orhan",
       "Orhan Sezen",
+      "Fatih Özçelik",
       "Merkez",
-      "Gazipaşa"
+      "Cezaevi"
     ];
 
     const URUN_LISTESI = [
       { kod: "19179", ad: "DÖKME AÇIK" },
       { kod: "19173", ad: "POŞETLİ" },
       { kod: "33787", ad: "MAKSİ" },
+      { kod: "19380", ad: "KOLİ 12 NUMARA" },
+      { kod: "19381", ad: "POŞETLİ 12 NUMARA" },
+      { kod: "19385", ad: "KOLİ 13 NUMARA" },
+      { kod: "19386", ad: "POŞETLİ 13 NUMARA" },
       { kod: "25338", ad: "POŞETLİ 14" },
       { kod: "19354", ad: "DÖKME BAGET" },
       { kod: "19352", ad: "DÖKME KALÇALI BUT" },
+      { kod: "19027", ad: "DÖKME ÇATAL BUT" },
       { kod: "19355", ad: "DÖKME BUT İNCİK" },
+      { kod: "19358", ad: "DÖKME IZGARA TAVA" },
       { kod: "4924", ad: "DÖKME KEMİKSİZ BUT" },
-      { kod: "33836", ad: "DÖKME DERİLİ LOKUMSUZ BONFİLE" },
       { kod: "19362", ad: "DÖKME BONFİLE" },
+      { kod: "19363", ad: "DÖKME DERİLİ BONFİLE" },
+      { kod: "24483", ad: "DÖKME DERİLİ LOKUMSUZ BONFİLE" },
+      { kod: "28857", ad: "DÖKME BÖLÜNMEMİŞ BONFİLE" },
+      { kod: "24479", ad: "DÖKME KELEBEK" },
       { kod: "19360", ad: "DÖKME KOVAN GÖĞÜS" },
       { kod: "19361", ad: "DÖKME MUZ GÖĞÜS" },
       { kod: "19367", ad: "DÖKME ÇORBALIK" },
@@ -512,10 +522,11 @@
       { kod: "19130", ad: "TABAKLI BUT İNCİK" },
       { kod: "19105", ad: "TABAKLI IZGARA TAVA" },
       { kod: "36137", ad: "TABAKLI SPS KANAT" },
+      { kod: "33798", ad: "TABAKLI JUMBO KANAT" },
       { kod: "36138", ad: "TABAKLI IZGARA KANAT" },
       { kod: "19110", ad: "TABAKLI BONFİLE" },
       { kod: "25339", ad: "TABAKLI CİĞER" },
-      { kod: "19320", ad: "TABAKLI TAŞLIK" },
+      { kod: "23479", ad: "TABAKLI TAŞLIK" },
       { kod: "31343", ad: "TABAKLI YÜREK" },
       { kod: "2812318", ad: "AL-TAV UÇLU KANAT" },
       { kod: "2812302", ad: "AL-TAV BONFİLE" },
@@ -523,16 +534,16 @@
       { kod: "2812305", ad: "AL-TAV ÇORBALIK" },
       { kod: "2812310", ad: "AL-TAV KALÇALI BUT" },
       { kod: "2812303", ad: "AL-TAV BUT İNCİK" },
-      { kod: "2812306", ad: "AL-TAV DÖNERLİK BONFİLE" },
-      { kod: "19027", ad: "ŞENPİLİÇ ÇATAL BUT" }
+      { kod: "2812306", ad: "AL-TAV DÖNERLİK BONFİLE" }
     ];
 
     const REP_TO_BRANCH = {
       "Metin İlhan": "ALANYA",
-      "Çetin Orhan Manavgat": "MANAVGAT",
+      "Çetin Orhan": "MANAVGAT",
       "Orhan Sezen": "YOL BOYU",
+      "Fatih Özçelik": "GAZİPAŞA",
       "Merkez": "MERKEZ",
-      "Gazipaşa": "GAZİPAŞA"
+      "Cezaevi": "CEZAEVİ"
     };
 
     const dateFilter = document.getElementById("dateFilter");
@@ -789,6 +800,7 @@
         "YOL BOYU": "",
         MERKEZ: "",
         "GAZİPAŞA": "",
+        "CEZAEVİ": "",
         TOPLAM: "",
         BOS: "",
         STOK: "",
@@ -822,7 +834,8 @@
           Number(row.MANAVGAT || 0) +
           Number(row["YOL BOYU"] || 0) +
           Number(row.MERKEZ || 0) +
-          Number(row["GAZİPAŞA"] || 0);
+          Number(row["GAZİPAŞA"] || 0) +
+          Number(row["CEZAEVİ"] || 0);
 
         row.TOPLAM = toplam > 0 ? toplam : "";
       });
@@ -861,7 +874,7 @@
         return formatDisplayDate(`${yy}-${mm}-${dd}`);
       })();
 
-      const MIN_VISIBLE_ROWS = 42;
+      const MIN_VISIBLE_ROWS = 43;
       const fillerCount = Math.max(0, MIN_VISIBLE_ROWS - matrix.length);
       const rowHeight = 30;
 
@@ -878,12 +891,13 @@
             <td style="border:1px solid #1f2937; text-align:center; font-weight:800; background:${zebra}; vertical-align:middle; height:${rowHeight}px;">${row["YOL BOYU"] || ""}</td>
             <td style="border:1px solid #1f2937; text-align:center; font-weight:800; background:${zebra}; vertical-align:middle; height:${rowHeight}px;">${row.MERKEZ || ""}</td>
             <td style="border:1px solid #1f2937; text-align:center; font-weight:800; background:${zebra}; vertical-align:middle; height:${rowHeight}px;">${row["GAZİPAŞA"] || ""}</td>
+            <td style="border:1px solid #1f2937; text-align:center; font-weight:800; background:${zebra}; vertical-align:middle; height:${rowHeight}px;">${row["CEZAEVİ"] || ""}</td>
             <td style="border:1px solid #1f2937; text-align:center; font-weight:900; background:#ede9fe; color:#4338ca; vertical-align:middle; height:${rowHeight}px;">${row.TOPLAM || ""}</td>
             <td style="border:1px solid #1f2937; background:#eef2f7; height:${rowHeight}px;"></td>
             <td style="border:1px solid #1f2937; text-align:center; font-weight:800; background:#fff7cc; vertical-align:middle; height:${rowHeight}px;">${row.STOK || ""}</td>
             <td style="border:1px solid #1f2937; text-align:center; font-weight:800; background:#dff2ff; vertical-align:middle; height:${rowHeight}px;">${row.GELECEK || ""}</td>
             <td style="border:1px solid #1f2937; text-align:center; font-weight:800; background:#fff7cc; vertical-align:middle; height:${rowHeight}px;">${row.GZP_OLD || ""}</td>
-            <td x:fmla="=J${excelRowNo}+K${excelRowNo}-L${excelRowNo}"
+            <td x:fmla="=K${excelRowNo}+L${excelRowNo}-M${excelRowNo}"
                 style="border:1px solid #1f2937; text-align:center; font-weight:900; background:#dcfce7; color:#166534; vertical-align:middle; height:${rowHeight}px;">
             </td>
           </tr>
@@ -892,6 +906,7 @@
 
       const fillerRowsHtml = Array.from({ length: fillerCount }, () => `
         <tr style="height:${rowHeight}px; mso-height-source:userset;">
+          <td style="border:1px solid #cbd5e1; height:${rowHeight}px;"></td>
           <td style="border:1px solid #cbd5e1; height:${rowHeight}px;"></td>
           <td style="border:1px solid #cbd5e1; height:${rowHeight}px;"></td>
           <td style="border:1px solid #cbd5e1; height:${rowHeight}px;"></td>
@@ -937,10 +952,11 @@
           <![endif]-->
         </head>
         <body>
-          <table border="0" cellpadding="0" cellspacing="0" style="border-collapse:collapse; font-family:'Aptos Narrow', Aptos, Calibri, Arial, sans-serif; font-size:14pt; table-layout:fixed; width:1750px;">
+          <table border="0" cellpadding="0" cellspacing="0" style="border-collapse:collapse; font-family:'Aptos Narrow', Aptos, Calibri, Arial, sans-serif; font-size:14pt; table-layout:fixed; width:1865px;">
             <colgroup>
               <col style="width:95px;">
               <col style="width:360px;">
+              <col style="width:115px;">
               <col style="width:115px;">
               <col style="width:115px;">
               <col style="width:115px;">
@@ -955,13 +971,13 @@
             </colgroup>
 
             <tr style="height:${rowHeight}px; mso-height-source:userset;">
-              <td colspan="13" style="border:1px solid #1f2937; background:#0f2f57; color:#ffffff; font-size:16pt; font-weight:900; text-align:center; vertical-align:middle; height:${rowHeight}px; padding:0 12px;">
+              <td colspan="14" style="border:1px solid #1f2937; background:#0f2f57; color:#ffffff; font-size:16pt; font-weight:900; text-align:center; vertical-align:middle; height:${rowHeight}px; padding:0 12px;">
                 Alanya Tavukçuluk - Sipariş Dağılımı
               </td>
             </tr>
 
             <tr style="height:${rowHeight}px; mso-height-source:userset;">
-              <td colspan="6" style="border:1px solid #1f2937; background:#eaf2ff; color:#1e3a8a; font-size:11pt; font-weight:800; text-align:center; vertical-align:middle; height:${rowHeight}px; padding:0 12px;">
+              <td colspan="7" style="border:1px solid #1f2937; background:#eaf2ff; color:#1e3a8a; font-size:11pt; font-weight:800; text-align:center; vertical-align:middle; height:${rowHeight}px; padding:0 12px;">
                 Sipariş Verilen Tarih: ${displayDate}
               </td>
               <td colspan="7" style="border:1px solid #1f2937; background:#eefcf3; color:#166534; font-size:11pt; font-weight:800; text-align:center; vertical-align:middle; height:${rowHeight}px; padding:0 12px;">
@@ -977,6 +993,7 @@
               <td style="border:1px solid #1f2937; background:#dbeafe; color:#1e3a8a; font-weight:900; text-align:center; vertical-align:middle; height:${rowHeight}px;">YOL BOYU</td>
               <td style="border:1px solid #1f2937; background:#dbeafe; color:#1e3a8a; font-weight:900; text-align:center; vertical-align:middle; height:${rowHeight}px;">MERKEZ</td>
               <td style="border:1px solid #1f2937; background:#dbeafe; color:#1e3a8a; font-weight:900; text-align:center; vertical-align:middle; height:${rowHeight}px;">GAZİPAŞA</td>
+              <td style="border:1px solid #1f2937; background:#dbeafe; color:#1e3a8a; font-weight:900; text-align:center; vertical-align:middle; height:${rowHeight}px;">CEZAEVİ</td>
               <td style="border:1px solid #1f2937; background:#ede9fe; color:#4338ca; font-weight:900; text-align:center; vertical-align:middle; height:${rowHeight}px;">TOPLAM</td>
               <td style="border:1px solid #1f2937; background:#eef2f7; vertical-align:middle; height:${rowHeight}px;"></td>
               <td style="border:1px solid #1f2937; background:#fef3c7; color:#92400e; font-weight:900; text-align:center; vertical-align:middle; height:${rowHeight}px;">STOK</td>
